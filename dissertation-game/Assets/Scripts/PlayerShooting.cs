@@ -3,14 +3,17 @@ using UnityEngine.Networking;
 
 public class PlayerShooting : NetworkBehaviour
 {
-    [SerializeField] float shotCooldown = 0.3f;
-    [SerializeField] Transform firePosition;
+	[SerializeField] float shotCooldown = 0.3f;
+	[SerializeField] Transform firePosition;
+	[SerializeField] ShotEffectsManager shotEffectsManager;
 
 	float elapsedTime;
 	bool canShoot;
 
 	private void Start()
 	{
+		shotEffectsManager.Initialise();
+
 		if (isLocalPlayer) {
 			canShoot = true;
 		}
@@ -36,7 +39,7 @@ public class PlayerShooting : NetworkBehaviour
 		RaycastHit hit;
 
 		Ray ray = new Ray(origin, direction);
-		Debug.DrawRay(ray.origin, ray.direction * 3f, Color.red, 1f);
+		Debug.DrawRay(ray.origin, ray.direction * 30f, Color.red, 1f);
 
 		bool result = Physics.Raycast(ray, out hit, 50f);
 
@@ -48,16 +51,16 @@ public class PlayerShooting : NetworkBehaviour
 			}
 		}
 
-		RpcProcessShotEffects(result, hit.point);
+		RpcProcessShotEffects(result, hit.point, hit.normal);
 	}
 
 	[ClientRpc]
-	private void RpcProcessShotEffects(bool result, Vector3 point)
+	private void RpcProcessShotEffects(bool result, Vector3 point, Vector3 normal)
 	{
-		// Play shot effects
+		shotEffectsManager.PlayShotEffects();
 
 		if (result) {
-			// Play impact effect at point
+			shotEffectsManager.PlayImpactEffect(point, normal);
 		}
 	}
 }
