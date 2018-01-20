@@ -7,6 +7,8 @@ public class PlayerShooting : NetworkBehaviour
 	[SerializeField] Transform firePosition;
 	[SerializeField] ShotEffectsManager shotEffectsManager;
 
+	[SyncVar(hook = "OnScoreChanged")] int score;
+
 	float elapsedTime;
 	bool canShoot;
 
@@ -17,6 +19,12 @@ public class PlayerShooting : NetworkBehaviour
 		if (isLocalPlayer) {
 			canShoot = true;
 		}
+	}
+
+	[ServerCallback]
+	private void OnEnable()
+	{
+		score = 0;
 	}
 
 	private void Update()
@@ -47,7 +55,10 @@ public class PlayerShooting : NetworkBehaviour
 			PlayerHealth enemy = hit.transform.GetComponent<PlayerHealth>();
 
 			if (enemy != null) {
-				enemy.TakeDamage();
+				if (enemy.TakeDamage()) {
+					// We've killed an enemy
+					score++;
+				}
 			}
 		}
 
@@ -61,6 +72,19 @@ public class PlayerShooting : NetworkBehaviour
 
 		if (result) {
 			shotEffectsManager.PlayImpactEffect(point, normal);
+		}
+	}
+
+	/// <summary>
+	/// Callback to update the player score locally
+	/// </summary>
+	/// <param name="newScore">The new score value.</param>
+	private void OnScoreChanged(int newScore)
+	{
+		score = newScore;
+
+		if (isLocalPlayer) {
+			PlayerCanvasController.playerCanvasController.SetScore(newScore);
 		}
 	}
 }
