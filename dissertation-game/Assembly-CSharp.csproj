@@ -58,7 +58,9 @@
      <Compile Include="Assets\Scripts\ShotEffectsManager.cs" />
      <Compile Include="Assets\Scripts\UI\MainMenuController.cs" />
      <Compile Include="Assets\Scripts\UI\UIFader.cs" />
+     <None Include="Assets\FPS Starter Kit - Lite\Textures &amp; Materials\_Font\3dText.shader" />
      <None Include="Assets\Audio\_readme_and_license.txt" />
+     <None Include="Assets\FPS Starter Kit - Lite\Textures &amp; Materials\_Explosion textures\Exposion shader.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

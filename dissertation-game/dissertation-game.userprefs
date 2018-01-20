@@ -2,11 +2,11 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Player\PlayerCanvasController.cs">
     <Files>
-      <File FileName="Assets\Scripts\ShotEffectsManager.cs" Line="7" Column="43" />
-      <File FileName="Assets\Scripts\Player\PlayerCanvasController.cs" Line="22" Column="23" />
-      <File FileName="Assets\Scripts\Player\Player.cs" Line="20" Column="19" />
-      <File FileName="Assets\Scripts\Player\PlayerHealth.cs" Line="3" Column="1" />
-      <File FileName="Assets\Scripts\Player\PlayerShooting.cs" Line="58" Column="30" />
+      <File FileName="Assets\Scripts\ShotEffectsManager.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Player\PlayerCanvasController.cs" Line="18" Column="51" />
+      <File FileName="Assets\Scripts\Player\Player.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Player\PlayerHealth.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Player\PlayerShooting.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
