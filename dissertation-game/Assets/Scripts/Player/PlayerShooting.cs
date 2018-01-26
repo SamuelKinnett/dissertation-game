@@ -6,6 +6,7 @@ public class PlayerShooting : NetworkBehaviour
 	[SerializeField] float shotCooldown = 0.3f;
 	[SerializeField] Transform firePosition;
 	[SerializeField] ShotEffectsManager shotEffectsManager;
+	[SerializeField] GunController gunController;
 
 	[SyncVar(hook = "OnScoreChanged")] int score;
 
@@ -69,6 +70,10 @@ public class PlayerShooting : NetworkBehaviour
 	private void RpcProcessShotEffects(bool result, Vector3 point, Vector3 normal)
 	{
 		shotEffectsManager.PlayShotEffects();
+
+		if (isLocalPlayer) {
+			gunController.Fire();
+		}
 
 		if (result) {
 			shotEffectsManager.PlayImpactEffect(point, normal);
