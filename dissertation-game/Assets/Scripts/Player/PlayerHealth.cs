@@ -38,6 +38,12 @@ public class PlayerHealth : NetworkBehaviour
 		health = maxHealth;
 	}
 
+	[ServerCallback]
+	private void Start()
+	{
+		health = maxHealth;
+	}
+
 	[ClientRpc]
 	private void RpcTakeDamage(bool died)
 	{

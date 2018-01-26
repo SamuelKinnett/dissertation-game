@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.Events;
+using UnityEngine.Networking;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class ToggleEvent : UnityEvent<bool>
@@ -10,10 +11,14 @@ public class ToggleEvent : UnityEvent<bool>
 
 public class Player : NetworkBehaviour
 {
+	[SyncVar(hook = "OnNameChanged")] public string PlayerName;
+	[SyncVar(hook = "OnColourChanged")] public Color PlayerColour;
+
 	[SerializeField] ToggleEvent onToggleShared;
 	[SerializeField] ToggleEvent onToggleLocal;
 	[SerializeField] ToggleEvent onToggleRemote;
 	[SerializeField] float respawnTime = 5.0f;
+	[SerializeField] Text playerNameText;
 
 	GameObject mainCamera;
 
@@ -77,5 +82,18 @@ public class Player : NetworkBehaviour
 		}
 
 		EnablePlayer();
+	}
+
+	private void OnNameChanged(string value)
+	{
+		PlayerName = value;
+		gameObject.name = PlayerName;
+		playerNameText.text = PlayerName;
+	}
+
+	public void OnColourChanged(Color value)
+	{
+		PlayerColour = value;
+		// Change colour of player model here
 	}
 }

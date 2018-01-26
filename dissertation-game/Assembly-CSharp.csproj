@@ -51,7 +51,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Lobby\Scripts\DraggablePanel.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyCountdownPanel.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyHook.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyInfoPanel.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyMainMenu.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyManager.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyPlayer.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyPlayerList.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyServerEntry.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyServerList.cs" />
+     <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyTopPanel.cs" />
+     <Compile Include="Assets\Scripts\GameLobbyHook.cs" />
      <Compile Include="Assets\Scripts\GunPositionSync.cs" />
+     <Compile Include="Assets\Scripts\LookAtCamera.cs" />
      <Compile Include="Assets\Scripts\Player\Player.cs" />
      <Compile Include="Assets\Scripts\Player\PlayerCanvasController.cs" />
      <Compile Include="Assets\Scripts\Player\PlayerHealth.cs" />
@@ -61,7 +74,10 @@
      <Compile Include="Assets\Scripts\UI\UIFader.cs" />
      <None Include="Assets\FPS Starter Kit - Lite\Textures &amp; Materials\_Font\3dText.shader" />
      <None Include="Assets\Audio\_readme_and_license.txt" />
+     <None Include="Assets\Lobby\Documentation.txt" />
      <None Include="Assets\FPS Starter Kit - Lite\Textures &amp; Materials\_Explosion textures\Exposion shader.shader" />
+     <None Include="Assets\Lobby\Instruction.txt" />
+     <None Include="Assets\Fonts\OpenSans\License!.txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
