@@ -3,18 +3,19 @@ using UnityEngine.Networking;
 
 public class PlayerShooting : NetworkBehaviour
 {
-	[SerializeField] float shotCooldown = 0.3f;
+	[SerializeField] int scoreToWin = 5;
 	[SerializeField] Transform firePosition;
 	[SerializeField] ShotEffectsManager shotEffectsManager;
-	[SerializeField] GunController gunController;
+	[SerializeField] Weapon currentWeapon;
 
 	[SyncVar(hook = "OnScoreChanged")] int score;
 
-	float elapsedTime;
+	Player player;
 	bool canShoot;
 
 	private void Start()
 	{
+		player = GetComponent<Player>();
 		shotEffectsManager.Initialise();
 
 		if (isLocalPlayer) {
@@ -22,6 +23,9 @@ public class PlayerShooting : NetworkBehaviour
 		}
 	}
 
+	/// <summary>
+	/// Raises the enable event.
+	/// </summary>
 	[ServerCallback]
 	private void OnEnable()
 	{
@@ -30,18 +34,19 @@ public class PlayerShooting : NetworkBehaviour
 
 	private void Update()
 	{
-		if (!canShoot) {
-			return;
-		}
-
-		elapsedTime += Time.deltaTime;
-
-		if (Input.GetButtonDown("Fire1") && elapsedTime > shotCooldown) {
-			elapsedTime = 0.0f;
-			CmdFireShot(firePosition.position, firePosition.forward);
+		if (canShoot) {
+			if (Input.GetButtonDown("Fire1") && currentWeapon.CanFire()) {
+				currentWeapon.Fire();
+				CmdFireShot(firePosition.position, firePosition.forward);
+			}
 		}
 	}
 
+	/// <summary>
+	/// Server command to fire a shot
+	/// </summary>
+	/// <param name="origin">Origin of the shot.</param>
+	/// <param name="direction">Direction of the shot.</param>
 	[Command]
 	private void CmdFireShot(Vector3 origin, Vector3 direction)
 	{
@@ -56,9 +61,11 @@ public class PlayerShooting : NetworkBehaviour
 			PlayerHealth enemy = hit.transform.GetComponent<PlayerHealth>();
 
 			if (enemy != null) {
-				if (enemy.TakeDamage()) {
+				if (enemy.TakeDamage(currentWeapon.Damage)) {
 					// We've killed an enemy
-					score++;
+					if (++score >= scoreToWin) {
+						player.Won();
+					}
 				}
 			}
 		}
@@ -72,7 +79,8 @@ public class PlayerShooting : NetworkBehaviour
 		shotEffectsManager.PlayShotEffects();
 
 		if (isLocalPlayer) {
-			gunController.Fire();
+			// Currently only play the animations on the player's side
+			currentWeapon.PlayShotEffects();
 		}
 
 		if (result) {

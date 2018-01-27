@@ -3,28 +3,30 @@ using UnityEngine.Networking;
 
 public class PlayerHealth : NetworkBehaviour
 {
-
 	[SerializeField] int maxHealth = 3;
 
 	[SyncVar(hook = "OnHealthChanged")] int health;
 
 	Player player;
 
+	/// <summary>
+	/// Cause this instance to take damage.
+	/// </summary>
+	/// <returns><c>true</c> if this instance died from this damage, <c>false</c> otherwise.</returns>
+	/// <param name="damage">The damage to deal this instance</param>
 	[Server]
-	public bool TakeDamage()
+	public bool TakeDamage(int damage = 1)
 	{
-		bool died = false;
+		if (health > 0) {
+			health -= damage;
+			var died = health <= 0;
 
-		if (health <= 0) {
+			RpcTakeDamage(died);
 			return died;
 		}
 
-		health--;
-		died = health <= 0;
-
-		RpcTakeDamage(died);
-
-		return died;
+		// The instance is dead, but this damage didn't cause the death, so we return false.
+		return false;
 	}
 
 	private void Awake()
@@ -44,6 +46,10 @@ public class PlayerHealth : NetworkBehaviour
 		health = maxHealth;
 	}
 
+	/// <summary>
+	/// Remote procedure call to apply damage/death effects on the client.
+	/// </summary>
+	/// <param name="died">If set to <c>true</c> died.</param>
 	[ClientRpc]
 	private void RpcTakeDamage(bool died)
 	{
