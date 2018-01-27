@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -6,7 +8,6 @@ using UnityEngine.UI;
 [System.Serializable]
 public class ToggleEvent : UnityEvent<bool>
 {
-
 }
 
 public class Player : NetworkBehaviour
@@ -20,8 +21,26 @@ public class Player : NetworkBehaviour
 	[SerializeField] float respawnTime = 5.0f;
 	[SerializeField] Text playerNameText;
 
+	static List<Player> players = new List<Player>();
+
 	GameObject mainCamera;
 
+	/// <summary>
+	/// Announce the winner and return to lobby
+	/// </summary>
+	[Server]
+	public void Won()
+	{
+		foreach (var currentPlayer in players) {
+			currentPlayer.RpcGameOver(netId, PlayerName);
+		}
+
+		Invoke("BackToLobby", 5f);
+	}
+
+	/// <summary>
+	/// Kill this player and respawn them.
+	/// </summary>
 	public void Die()
 	{
 		if (isLocalPlayer) {
@@ -41,6 +60,9 @@ public class Player : NetworkBehaviour
 		EnablePlayer();
 	}
 
+	/// <summary>
+	/// Enables this player.
+	/// </summary>
 	private void EnablePlayer()
 	{
 		if (isLocalPlayer) {
@@ -57,6 +79,9 @@ public class Player : NetworkBehaviour
 		}
 	}
 
+	/// <summary>
+	/// Disables this player.
+	/// </summary>
 	private void DisablePlayer()
 	{
 		if (isLocalPlayer) {
@@ -73,6 +98,9 @@ public class Player : NetworkBehaviour
 		}
 	}
 
+	/// <summary>
+	/// Respawn this player.
+	/// </summary>
 	private void Respawn()
 	{
 		if (isLocalPlayer) {
@@ -84,6 +112,10 @@ public class Player : NetworkBehaviour
 		EnablePlayer();
 	}
 
+	/// <summary>
+	/// Raises the name changed event.
+	/// </summary>
+	/// <param name="value">The new name value.</param>
 	private void OnNameChanged(string value)
 	{
 		PlayerName = value;
@@ -91,9 +123,52 @@ public class Player : NetworkBehaviour
 		playerNameText.text = PlayerName;
 	}
 
-	public void OnColourChanged(Color value)
+	/// <summary>
+	/// Raises the colour changed event.
+	/// </summary>
+	/// <param name="value">The new colour value.</param>
+	private void OnColourChanged(Color value)
 	{
 		PlayerColour = value;
 		// Change colour of player model here
+	}
+
+	private void BackToLobby()
+	{
+		FindObjectOfType<NetworkLobbyManager>().ServerReturnToLobby();
+	}
+
+	[ServerCallback]
+	private void OnEnable()
+	{
+		if (!players.Contains(this)) {
+			players.Add(this);
+		}
+	}
+
+	[ServerCallback]
+	private void OnDisable()
+	{
+		if (players.Contains(this)) {
+			players.Remove(this);
+		}
+	}
+
+	[ClientRpc]
+	void RpcGameOver(NetworkInstanceId networkId, string name)
+	{
+		DisablePlayer();
+
+		// Unlock and show the cursor
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
+
+		if (isLocalPlayer) {
+			if (netId == networkId) {
+				PlayerCanvasController.playerCanvasController.WriteGameStatusText("You Won!");
+			} else {
+				PlayerCanvasController.playerCanvasController.WriteGameStatusText("Game Over!\n" + name + " Won.");
+			}
+		}
 	}
 }

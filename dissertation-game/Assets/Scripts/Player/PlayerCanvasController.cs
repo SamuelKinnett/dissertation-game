@@ -3,7 +3,6 @@ using UnityEngine.UI;
 
 public class PlayerCanvasController : MonoBehaviour
 {
-
 	public static PlayerCanvasController playerCanvasController;
 
 	[Header("Component References")]
