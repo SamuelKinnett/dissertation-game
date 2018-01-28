@@ -8,6 +8,18 @@ public class MapController : MonoBehaviour
 	[SerializeField] MeshFilter meshFilter;
 	[SerializeField] MeshCollider meshCollider;
 
+	// The X, Y and Z dimensions of the map respectively
+	public int mapWidth;
+	public int mapLength;
+	public int mapHeight;
+
+	// This array stores the data of the map geometry, with each element representing one 'block'.
+	// Current possible values are:
+	// 0 - Empty space
+	// 1 - Solid
+	// Could eventually add different terrain types here, even if only for graphical effect.
+	private byte[,,] mapData;
+
 	private Mesh mesh;
 
 	private List<Vector3> newVertices;
@@ -23,20 +35,22 @@ public class MapController : MonoBehaviour
 	// Use this for initialization
 	private void Start()
 	{
+		mapData = new byte[mapWidth, mapHeight, mapLength];
+
+		// Add a testing plane to the map
+		for (int x = 0; x < mapWidth; ++x) {
+			for (int z = 0; z < mapLength; ++z) {
+				mapData[x, 0, z] = 1;
+			}
+		}
+
 		mesh = meshFilter.mesh;
 
 		newVertices = new List<Vector3>();
 		newTriangles = new List<int>();
 		newUV = new List<Vector2>();
 
-		CreateCubeTopFace(0, 0, 0, 0);
-		CreateCubeNorthFace(0, 0, 0, 0);
-		CreateCubeEastFace(0, 0, 0, 0);
-		CreateCubeSouthFace(0, 0, 0, 0);
-		CreateCubeWestFace(0, 0, 0, 0);
-		CreateCubeBottomFace(0, 0, 0, 0);
-
-		UpdateMesh();
+		GenerateMesh();
 	}
 	
 	// Update is called once per frame
@@ -69,6 +83,63 @@ public class MapController : MonoBehaviour
 
 		// Reset the face count
 		faceCount = 0;
+	}
+
+	private void GenerateMesh()
+	{
+		for (int x = 0; x < mapWidth; ++x) {
+			for (int y = 0; y < mapHeight; ++y) {
+				for (int z = 0; z < mapLength; ++z) {
+					byte curBlock = GetBlock(x, y, z);
+
+					// If this block is solid
+					if (curBlock > 0) {
+						// Compare the block to all of its neighbours. Any side that faces air should
+						// have a face rendered.
+
+						if (GetBlock(x, y + 1, z) == 0) {
+							CreateCubeTopFace(x, y, z, curBlock);
+						}
+
+						if (GetBlock(x, y, z + 1) == 0) {
+							CreateCubeNorthFace(x, y, z, curBlock);
+						}
+
+						if (GetBlock(x + 1, y, z) == 0) {
+							CreateCubeEastFace(x, y, z, curBlock);
+						}
+
+						if (GetBlock(x, y, z - 1) == 0) {
+							CreateCubeSouthFace(x, y, z, curBlock);
+						}
+
+						if (GetBlock(x - 1, y, z) == 0) {
+							CreateCubeWestFace(x, y, z, curBlock);
+						}
+
+						if (GetBlock(x, y - 1, z) == 0) {
+							CreateCubeBottomFace(x, y, z, curBlock);
+						}
+					}
+				}
+			}
+		}
+
+		UpdateMesh();
+	}
+
+	private byte GetBlock(int x, int y, int z)
+	{
+		if (x >= mapWidth ||
+		    x < 0 ||
+		    y >= mapHeight ||
+		    y < 0 ||
+		    z >= mapLength ||
+		    z < 0) {
+			return 1;
+		}
+
+		return mapData[x, y, z];
 	}
 
 	private void CreateCubeTopFace(int x, int y, int z, byte block)
