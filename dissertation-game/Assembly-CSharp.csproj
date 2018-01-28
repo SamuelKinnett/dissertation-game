@@ -116,6 +116,7 @@
      <Compile Include="Assets\Asset Store\Standard Assets\Utility\TimedObjectDestructor.cs" />
      <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointCircuit.cs" />
      <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointProgressTracker.cs" />
+     <Compile Include="Assets\Scripts\MapController.cs" />
      <Compile Include="Assets\Scripts\Network\GameLobbyHook.cs" />
      <Compile Include="Assets\Scripts\Player\GunPositionSync.cs" />
      <Compile Include="Assets\Scripts\Player\Player.cs" />
