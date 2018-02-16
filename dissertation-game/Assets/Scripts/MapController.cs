@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
 using UnityEditor;
-using System;
 
 public class MapController : MonoBehaviour
 {
@@ -40,6 +42,18 @@ public class MapController : MonoBehaviour
 		}
 
 		return mapData[x, y, z];
+	}
+
+	public void SetBlock(int x, int y, int z, byte block)
+	{
+		x = Mathf.Clamp(x, 0, mapWidth);
+		y = Mathf.Clamp(y, 0, mapHeight);
+		z = Mathf.Clamp(z, 0, mapLength);
+
+		mapData[x, y, z] = block;
+
+		// Find the modified chunk and update it's changed flag
+		mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
 	}
 
 	// Use this for initialization

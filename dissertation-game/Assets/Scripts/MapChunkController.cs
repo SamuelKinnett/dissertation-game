@@ -8,6 +8,8 @@ public class MapChunkController : MonoBehaviour
 	[SerializeField] MeshFilter meshFilter;
 	[SerializeField] MeshCollider meshCollider;
 
+	public bool ChunkUpdated;
+
 	private Mesh mesh;
 
 	private List<Vector3> newVertices;
@@ -91,6 +93,32 @@ public class MapChunkController : MonoBehaviour
 		}
 
 		UpdateMesh();
+	}
+
+	/// <summary>
+	/// Returns true if the specified co-ordinate is contained within this chunk	
+	/// </summary>
+	/// <param name="x">The x coordinate.</param>
+	/// <param name="y">The y coordinate.</param>
+	/// <param name="z">The z coordinate.</param>
+	public bool Contains(int x, int y, int z)
+	{
+		var positionOutsideOfChunk = 
+			(x >= chunkX + chunkWidth ||
+			x < chunkX ||
+			y >= chunkY + chunkHeight ||
+			y < chunkY ||
+			z >= chunkZ + chunkLength ||
+			z < chunkZ);
+
+		return !positionOutsideOfChunk;
+	}
+
+	private void Update()
+	{
+		if (ChunkUpdated) {
+			GenerateMesh();
+		}
 	}
 
 	private void Awake()
