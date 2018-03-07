@@ -377,7 +377,7 @@
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\TimedObjectDestructor.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointCircuit.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointProgressTracker.cs" />
-    <Compile Include="Assets\Scripts\Environment\Genetic Algorithms\MapOperator.cs" />
+    <Compile Include="Assets\Scripts\Environment\Genetic Algorithms\MapMutate.cs" />
     <Compile Include="Assets\Scripts\Environment\MapChunkController.cs" />
     <Compile Include="Assets\Scripts\Environment\MapController.cs" />
     <Compile Include="Assets\Scripts\Network\GameLobbyHook.cs" />

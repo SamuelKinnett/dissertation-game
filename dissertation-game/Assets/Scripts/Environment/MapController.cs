@@ -119,6 +119,11 @@ public class MapController : MonoBehaviour
         }
     }
 
+    private void ConvertChromosomeToMap(Chromosome newChromosome)
+    {
+
+    }
+
     #region Genetic Algorithms
 
     public static double FitnessFunction(Chromosome chromosome)
@@ -137,13 +142,31 @@ public class MapController : MonoBehaviour
         return currentGeneration > 100;
     }
 
+    /// <summary>
+    /// Callback for when the GA has finished a generation
+    /// </summary>
+    public static void ga_OnGenerationComplete(object sender, GaEventArgs e)
+    {
+
+    }
+
+    /// <summary>
+    /// Callback for when the GA has finished a run
+    /// </summary>
+    public static void ga_OnRunComplete(object sender, GaEventArgs e)
+    {
+        var fittestMap = e.Population.GetTop(1).First();
+        
+    }
+
     private void GenerateWorld()
     {
         var population = new Population();
 
-        // Add the genes. Currently, the first five genes correspond to arenas
-        // and the remainder correspond to corridors.
-        for (int i = 0; i < 20; ++i)
+        // Add the genes. Currently, the first 15 genes correspond to arenas,
+        // the second 15 genes correspond to corridors and the final 10 genes
+        // correspond to barriers.
+        for (int i = 0; i < 40; ++i)
         {
             var chromosome = new Chromosome();
             chromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
