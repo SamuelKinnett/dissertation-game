@@ -10,13 +10,21 @@ using UnityEditor;
 using GAF;
 using GAF.Extensions;
 using GAF.Operators;
+using Assets.Scripts.Environment.Enums;
+using Assets.Scripts.Environment.Genetic_Algorithms;
+using UnityEngine.Networking;
 
-public class MapController : MonoBehaviour
+public class MapController : NetworkBehaviour
 {
     // The X, Y and Z dimensions of the map respectively
-    public int mapWidth;
-    public int mapHeight;
-    public int mapLength;
+    public static int mapWidth;
+    public static int mapHeight;
+    public static int mapLength;
+
+    // Used to set the map size in the insepctor
+    public int setMapWidth;
+    public int setMapHeight;
+    public int setMapLength;
 
     // The X, Y and Z dimensions of the chunks
     public int chunkWidth;
@@ -31,9 +39,17 @@ public class MapController : MonoBehaviour
     // 0 - Empty space
     // 1 - Solid
     // Could eventually add different terrain types here, even if only for graphical effect.
-    private byte[,,] mapData;
+    private static byte[,,] mapData;
 
-    private List<MapChunkController> mapChunks;
+    private static List<MapChunkController> mapChunks;
+
+    private static int wallHeight = 3;
+
+    // GA related variables
+    static Chromosome currentMapChromosome;
+
+    static bool generationInProgress;
+    static bool mapUpdateNeeded;
 
     public byte GetBlock(int x, int y, int z)
     {
@@ -50,11 +66,11 @@ public class MapController : MonoBehaviour
         return mapData[x, y, z];
     }
 
-    public void SetBlock(int x, int y, int z, byte block)
+    public static void SetBlock(int x, int y, int z, byte block)
     {
-        x = Mathf.Clamp(x, 0, mapWidth);
-        y = Mathf.Clamp(y, 0, mapHeight);
-        z = Mathf.Clamp(z, 0, mapLength);
+        x = Mathf.Clamp(x, 0, mapWidth - 1);
+        y = Mathf.Clamp(y, 0, mapHeight - 1);
+        z = Mathf.Clamp(z, 0, mapLength - 1);
 
         mapData[x, y, z] = block;
 
@@ -62,11 +78,97 @@ public class MapController : MonoBehaviour
         mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
     }
 
+    public static void UpdateMapWithMapSketch(TileType[,] mapSketch)
+    {
+        for (int curX = 0; curX < mapWidth / 2; ++curX)
+        {
+            for (int curY = 0; curY < mapLength / 2; ++curY)
+            {
+                switch (mapSketch[curX, curY])
+                {
+                    case TileType.Impassable:
+                        for (int i = 0; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 1);
+                        }
+                        break;
+
+                    case TileType.Passable:
+                        SetLargeBlock(curX, 0, curY, 1);
+                        break;
+
+                    case TileType.Team1Spawn:
+                        SetLargeBlock(curX, 0, curY, 1);
+                        // TODO: Set spawn point here
+                        break;
+
+                    case TileType.Team2Spawn:
+                        SetLargeBlock(curX, 0, curY, 1);
+                        // TODO: Set spawn point here
+                        break;
+
+                    default:
+                        for (int i = 0; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 1);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    private static void SetLargeBlock(int x, int y, int z, byte block)
+    {
+        var tempX = x * 2;
+        var tempY = y * 2;
+        var tempZ = z * 2;
+
+        SetBlock(tempX, tempY, tempZ, block);
+        SetBlock(tempX + 1, tempY, tempZ, block);
+        SetBlock(tempX, tempY + 1, tempZ, block);
+        SetBlock(tempX + 1, tempY + 1, tempZ, block);
+        SetBlock(tempX, tempY, tempZ + 1, block);
+        SetBlock(tempX + 1, tempY, tempZ + 1, block);
+        SetBlock(tempX, tempY + 1, tempZ + 1, block);
+        SetBlock(tempX + 1, tempY + 1, tempZ + 1, block);
+    }
+
     // Use this for initialization
     private void Start()
     {
+        mapWidth = setMapWidth;
+        mapHeight = setMapHeight;
+        mapLength = setMapLength;
+
         mapData = new byte[mapWidth, mapHeight, mapLength];
         mapChunks = new List<MapChunkController>();
+
+        mapUpdateNeeded = false;
+
+        // Create the default chromosome
+        var defaultChromosome = new Chromosome();
+
+        for (int i = 0; i < 45; ++i)
+        {
+            defaultChromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
+        }
+
+        // Add the default centre arena
+        defaultChromosome.Genes[0] = new Gene(new Tuple<int, int, int>(12, 12, 8));
+
+        // Add the default corridors
+        // TODO: Make these scalable with the map rather than hard coded
+        defaultChromosome.Genes[15] = new Gene(new Tuple<int, int, int>(4, 4, 16));
+        defaultChromosome.Genes[16] = new Gene(new Tuple<int, int, int>(4, 4, -16));
+        defaultChromosome.Genes[17] = new Gene(new Tuple<int, int, int>(12, 27, 16));
+        defaultChromosome.Genes[18] = new Gene(new Tuple<int, int, int>(27, 12, -16));
+        defaultChromosome.Genes[19] = new Gene(new Tuple<int, int, int>(4, 18, 10));
+        defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>(18, 4, -10));
+        defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>(13, 18, 10));
+        defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>(18, 13, -10));
+
+        currentMapChromosome = defaultChromosome;
 
         // Add a testing plane to the map
         //for (int x = 0; x < mapWidth; ++x) {
@@ -75,9 +177,19 @@ public class MapController : MonoBehaviour
         //	}
         //}
 
-        GenerateWorld();
         InstantiateChunks();
         GenerateMesh();
+        GenerateWorld();
+    }
+
+    private void Update()
+    {
+        if (mapUpdateNeeded)
+        {
+            UpdateMapWithMapSketch(ConvertChromosomeToMapSketch(currentMapChromosome));
+            GenerateMesh();
+            mapUpdateNeeded = false;
+        }
     }
 
     private void InstantiateChunks()
@@ -119,9 +231,164 @@ public class MapController : MonoBehaviour
         }
     }
 
-    private void ConvertChromosomeToMap(Chromosome newChromosome)
+    /// <summary>
+    /// Converts a chromosome into a map sketch
+    /// </summary>
+    public static TileType[,] ConvertChromosomeToMapSketch(Chromosome newChromosome)
     {
+        // The map sketch works on a different resolution than the normal
+        // grid, so we need to calculate a new width/height for this.
+        var largeWidth = mapWidth / 2;
+        var largeLength = mapLength / 2;
 
+        // Create a new map sketch filled with impassable tiles
+        var mapSketch = new TileType[largeWidth, largeLength];
+
+        // Build the map
+        for (int currentGeneIndex = 0; currentGeneIndex < newChromosome.Genes.Count; ++currentGeneIndex)
+        {
+            var geneTuple = (Tuple<int, int, int>)newChromosome.Genes[currentGeneIndex].ObjectValue;
+            if (currentGeneIndex < 15)
+            {
+                // This gene is an arena
+                int arenaX = geneTuple.Item1;
+                int arenaY = geneTuple.Item2;
+                int arenaSize = geneTuple.Item3;
+                for (int curX = arenaX; curX < arenaX + arenaSize; ++curX)
+                {
+                    for (int curY = arenaY; curY < arenaY + arenaSize; ++curY)
+                    {
+                        if (curX >= 0 &&
+                            curY >= 0 &&
+                            curX < largeWidth &&
+                            curY < largeLength)
+                        {
+                            mapSketch[curX, curY] = TileType.Passable;
+                        }
+                    }
+                }
+            }
+            else if (currentGeneIndex < 40)
+            {
+                // This gene is a corridor or a barrier. Both are encoded in a
+                // similar manner and so we'll consider them at the same time.
+                int corridorX = geneTuple.Item1;
+                int corridorY = geneTuple.Item2;
+                int corridorLength = geneTuple.Item3;
+
+                if (corridorLength > 1)
+                {
+                    // Horizontal corridor/barrier
+                    for (int curX = corridorX; curX < corridorX + corridorLength; ++curX)
+                    {
+                        if (currentGeneIndex < 30)
+                        {
+                            // This is a corridor
+                            // All corridors have a fixed width of three tiles
+                            for (int i = -1; i < 2; ++i)
+                            {
+                                if (curX >= 0 &&
+                                    corridorY + i >= 0 &&
+                                    curX < largeWidth &&
+                                    corridorY + i < largeLength)
+                                {
+                                    mapSketch[curX, corridorY + i] = TileType.Passable;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // This is a barrier
+                            // All barriers are only one tile thick
+                            if (curX >= 0 &&
+                                corridorY >= 0 &&
+                                curX < largeWidth &&
+                                corridorY < largeLength)
+                            {
+                                mapSketch[curX, corridorY] = TileType.Barrier;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Vertical corridor/barrier
+                    for (int curY = corridorY; curY < corridorY - corridorLength; ++curY)
+                    {
+                        if (currentGeneIndex < 30)
+                        {
+                            // This is a corridor
+                            // All corridors have a fixed width of three tiles
+                            for (int i = -1; i < 2; ++i)
+                            {
+                                if (curY >= 0 &&
+                                    corridorX + i >= 0 &&
+                                    curY < largeLength &&
+                                    corridorX + i < largeWidth)
+                                {
+                                    mapSketch[corridorX + i, curY] = TileType.Passable;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // This is a barrier
+                            // All barriers are only one tile thick
+                            if (curY >= 0 &&
+                                corridorX >= 0 &&
+                                curY < largeLength &&
+                                corridorX < largeWidth)
+                            {
+                                mapSketch[corridorX, curY] = TileType.Barrier;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (currentGeneIndex < 44)
+            {
+                var pickupX = geneTuple.Item1;
+                var pickupY = geneTuple.Item2;
+                var pickupValue = (PickupType)geneTuple.Item3;
+                // This gene is a pickup
+
+                var mapSketchPickupValue = TileType.Passable;
+                switch (pickupValue)
+                {
+                    case PickupType.Health:
+                        mapSketchPickupValue = TileType.HealthPickup;
+                        break;
+                }
+
+                mapSketch[pickupX, pickupY] = mapSketchPickupValue;
+            }
+            else
+            {
+                // This gene is the capture point
+                var capturePointX = geneTuple.Item1;
+                var capturePointY = geneTuple.Item2;
+
+                mapSketch[capturePointX, capturePointY] = TileType.CapturePoint;
+            }
+        }
+
+        // Add in the default spawn rooms
+        for (int spawnX = 2; spawnX < 7; ++spawnX)
+        {
+            for (int spawnY = 2; spawnY < 7; ++spawnY)
+            {
+                mapSketch[spawnX, spawnY] = TileType.Team1Spawn;
+            }
+        }
+        for (int spawnX = largeWidth - 8; spawnX < largeWidth - 2; ++spawnX)
+        {
+            for (int spawnY = largeLength - 8; spawnY < largeLength - 2; ++spawnY)
+            {
+                mapSketch[spawnX, spawnY] = TileType.Team2Spawn;
+            }
+        }
+
+        return mapSketch;
     }
 
     #region Genetic Algorithms
@@ -130,16 +397,18 @@ public class MapController : MonoBehaviour
     {
         // TODO: convert genotype to phenotype and evaluate
         // Temporary testing value
+        var mapSketch = ConvertChromosomeToMapSketch(chromosome);
+
         return chromosome.Genes.Average((gene) =>
         {
             var tuple = (Tuple<int, int, int>)gene.ObjectValue;
-            return tuple.Item1 + tuple.Item2 + tuple.Item3;
+            return (tuple.Item1 > 0 && tuple.Item2 > 0 && tuple.Item3 > 0) ? 1 : 0;
         });
     }
 
     public static bool Terminate(Population population, int currentGeneration, long currentEvaluation)
     {
-        return currentGeneration > 100;
+        return currentGeneration > 10;
     }
 
     /// <summary>
@@ -147,7 +416,7 @@ public class MapController : MonoBehaviour
     /// </summary>
     public static void ga_OnGenerationComplete(object sender, GaEventArgs e)
     {
-
+        var test = 1;
     }
 
     /// <summary>
@@ -156,21 +425,22 @@ public class MapController : MonoBehaviour
     public static void ga_OnRunComplete(object sender, GaEventArgs e)
     {
         var fittestMap = e.Population.GetTop(1).First();
-        
+
+        currentMapChromosome = fittestMap;
+        mapUpdateNeeded = true;
+        generationInProgress = false;
     }
 
     private void GenerateWorld()
     {
+        generationInProgress = true;
+
         var population = new Population();
 
-        // Add the genes. Currently, the first 15 genes correspond to arenas,
-        // the second 15 genes correspond to corridors and the final 10 genes
-        // correspond to barriers.
-        for (int i = 0; i < 40; ++i)
+        // Add one hundred copies of the current chromosome
+        for (int i = 0; i < 100; ++i)
         {
-            var chromosome = new Chromosome();
-            chromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
-            population.Solutions.Add(chromosome);
+            population.Solutions.Add(currentMapChromosome.DeepClone(true));
         }
 
         // Create the elite operator with an elitism percentage of 5 (the top
@@ -184,14 +454,22 @@ public class MapController : MonoBehaviour
         // is then swapped between the two parents.
         var crossover = new Crossover(0.8) { CrossoverType = CrossoverType.DoublePoint };
 
-        // Create the mutation operator. The swap mutate will randomly swap one
-        // gene in a chromosome with another with a (in this case) 4% 
-        // probability.
-        // TODO: Examine uniform mutation
+        // Create the mutation operator.
+        // var mutation = new MapMutate(0.04);
         var mutation = new SwapMutate(0.04);
 
         // Create the genetic algorithm and assign callbacks
         var geneticAlgorithm = new GeneticAlgorithm(population, FitnessFunction);
+        geneticAlgorithm.OnGenerationComplete += ga_OnGenerationComplete;
+        geneticAlgorithm.OnRunComplete += ga_OnRunComplete;
+
+        // Add the operators to the genetic algorithm process pipeline
+        geneticAlgorithm.Operators.Add(elite);
+        geneticAlgorithm.Operators.Add(crossover);
+        geneticAlgorithm.Operators.Add(mutation);
+
+        // Run the genetic algorithm
+        geneticAlgorithm.Run(Terminate);
     }
 
     #endregion

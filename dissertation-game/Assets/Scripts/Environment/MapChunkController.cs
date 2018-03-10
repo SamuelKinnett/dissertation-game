@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class MapChunkController : MonoBehaviour
+public class MapChunkController : NetworkBehaviour
 {
 	[SerializeField] MeshFilter meshFilter;
 	[SerializeField] MeshCollider meshCollider;
@@ -118,6 +119,7 @@ public class MapChunkController : MonoBehaviour
 	{
 		if (ChunkUpdated) {
 			GenerateMesh();
+            ChunkUpdated = false;
 		}
 	}
 
