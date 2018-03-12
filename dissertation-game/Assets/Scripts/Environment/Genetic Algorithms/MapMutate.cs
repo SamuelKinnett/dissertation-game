@@ -1,32 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using GAF;
 using GAF.Operators;
+using UnityEngine;
 
 namespace Assets.Scripts.Environment.Genetic_Algorithms
 {
     public class MapMutate : MutateBase, IGeneticOperator
     {
-        public bool Enabled { get; set; }
-        public bool RequiresEvaluatedPopulation { get; set; }
+        private int mapWidth;
+        private int mapHeight;
 
-        public MapMutate (double mutationProbability) : base (mutationProbability)
+        public MapMutate (double mutationProbability, int mapWidth, int mapHeight) : base (mutationProbability)
         {
-
-        }
-
-        public int GetOperatorInvokedEvaluations()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Invoke(Population currentPopulation, ref Population newPopulation, FitnessFunction fitnesFunctionDelegate)
-        {
-            throw new NotImplementedException();
+            this.mapWidth = mapWidth;
+            this.mapHeight = mapHeight;
         }
 
         protected override void Mutate(Chromosome child)
@@ -36,7 +24,9 @@ namespace Assets.Scripts.Environment.Genetic_Algorithms
 
         protected override void MutateGene(Gene gene)
         {
-            throw new NotImplementedException();
+            var rand = new System.Random();
+
+            gene.ObjectValue = new Tuple<int, int, int>(rand.Next(0, mapWidth), rand.Next(0, mapHeight), rand.Next(0, Mathf.Min(mapWidth, mapHeight)));
         }
     }
 }

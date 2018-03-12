@@ -72,10 +72,13 @@ public class MapController : NetworkBehaviour
         y = Mathf.Clamp(y, 0, mapHeight - 1);
         z = Mathf.Clamp(z, 0, mapLength - 1);
 
-        mapData[x, y, z] = block;
+        if (mapData[x, y, z] != block)
+        {
+            mapData[x, y, z] = block;
 
-        // Find the modified chunk and update it's changed flag
-        mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
+            // Find the modified chunk and update it's changed flag
+            mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
+        }
     }
 
     public static void UpdateMapWithMapSketch(TileType[,] mapSketch)
@@ -110,6 +113,11 @@ public class MapController : NetworkBehaviour
                     case TileType.Barrier:
                         SetLargeBlock(curX, 0, curY, 1);
                         SetLargeBlock(curX, 1, curY, 1);
+                        break;
+
+                    case TileType.CapturePoint:
+                        SetLargeBlock(curX, 0, curY, 1);
+                        SetLargeBlock(curX, 4, curY, 1);
                         break;
 
                     default:
@@ -159,13 +167,13 @@ public class MapController : NetworkBehaviour
             defaultChromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
         }
 
-        // Add the default corridors
         var horizontalCorridorLength = mapWidth / 4;
         var verticalCorridorLength = mapLength / 4;
 
         // Add the default centre arena
         defaultChromosome.Genes[0] = new Gene(new Tuple<int, int, int>(horizontalCorridorLength / 2, verticalCorridorLength / 2, horizontalCorridorLength));
 
+        // Add the default corridors
         defaultChromosome.Genes[15] = new Gene(new Tuple<int, int, int>(4, 4, horizontalCorridorLength / 2));
         defaultChromosome.Genes[16] = new Gene(new Tuple<int, int, int>(4, 4, -verticalCorridorLength / 2));
         defaultChromosome.Genes[17] = new Gene(new Tuple<int, int, int>(4, 4 + verticalCorridorLength / 2, horizontalCorridorLength / 2));
@@ -174,6 +182,9 @@ public class MapController : NetworkBehaviour
         defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5, (mapLength / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
         defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5 - verticalCorridorLength / 2, horizontalCorridorLength / 2));
         defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
+
+        // Add the default capture point
+        defaultChromosome.Genes[44] = new Gene(new Tuple<int, int, int>(mapWidth / 4 - 1, mapLength / 4 - 1, 2));
 
         currentMapChromosome = defaultChromosome;
 
@@ -189,6 +200,9 @@ public class MapController : NetworkBehaviour
             UpdateMapWithMapSketch(ConvertChromosomeToMapSketch(currentMapChromosome));
             GenerateMesh();
             mapUpdateNeeded = false;
+
+            // Testing
+            GenerateWorld();
         }
     }
 
@@ -367,8 +381,21 @@ public class MapController : NetworkBehaviour
                 // This gene is the capture point
                 var capturePointX = geneTuple.Item1;
                 var capturePointY = geneTuple.Item2;
+                var capturePointSize = geneTuple.Item3;
 
-                mapSketch[capturePointX, capturePointY] = TileType.CapturePoint;
+                for (int curX = capturePointX; curX < capturePointX + capturePointSize; ++curX)
+                {
+                    for (int curY = capturePointY; curY < capturePointY + capturePointSize; ++curY)
+                    {
+                        if (curX >= 0 &&
+                            curX < largeWidth &&
+                            curY >= 0 &&
+                            curY < largeLength)
+                        {
+                            mapSketch[curX, curY] = TileType.CapturePoint;
+                        }
+                    }
+                }
             }
         }
 
@@ -391,13 +418,113 @@ public class MapController : NetworkBehaviour
         return mapSketch;
     }
 
+    public static bool[,] FloodFillMapSketch(TileType[,] mapSketch, int startX, int startY)
+    {
+        // This queue stores all tiles currently being considered
+        Queue<Tuple<int, int>> tiles = new Queue<Tuple<int, int>>();
+
+        // This array stores true if a tile can be reached from the starting tile
+        bool[,] reachableTiles = new bool[mapWidth / 2, mapLength / 2];
+
+        // This array stores true if a tile has been visited already by the algorithm
+        bool[,] visitedTiles = new bool[mapWidth / 2, mapLength / 2];
+
+        // Initialise the queue
+        tiles.Enqueue(new Tuple<int, int>(startX, startY));
+        visitedTiles[startX, startY] = true;
+
+        while (tiles.Count > 0)
+        {
+            var currentTile = tiles.Dequeue();
+
+            var x = (int)currentTile.Item1;
+            var y = (int)currentTile.Item2;
+
+            // If this tile isn't impassable then add its neighbours to
+            // the queue
+            if (mapSketch[x, y] != TileType.Impassable)
+            {
+                reachableTiles[x, y] = true;
+
+                if (x + 1 < mapWidth / 2 - 1 &&
+                    !visitedTiles[x + 1, y])
+                {
+                    tiles.Enqueue(new Tuple<int, int>(x + 1, y));
+                    visitedTiles[x + 1, y] = true;
+                }
+                if (x - 1 > 0 &&
+                    !visitedTiles[x - 1, y])
+                {
+                    tiles.Enqueue(new Tuple<int, int>(x - 1, y));
+                    visitedTiles[x - 1, y] = true;
+                }
+                if (y + 1 < mapLength / 2 - 1 &&
+                    !visitedTiles[x, y + 1])
+                {
+                    tiles.Enqueue(new Tuple<int, int>(x, y + 1));
+                    visitedTiles[x, y + 1] = true;
+                }
+                if (y - 1 > 0 &&
+                    !visitedTiles[x, y - 1])
+                {
+                    tiles.Enqueue(new Tuple<int, int>(x, y - 1));
+                    visitedTiles[x, y - 1] = true;
+                }
+            }
+        }
+
+        return reachableTiles;
+    }
+
     #region Genetic Algorithms
 
     public static double FitnessFunction(Chromosome chromosome)
     {
-        // TODO: convert genotype to phenotype and evaluate
-        // Temporary testing value
         var mapSketch = ConvertChromosomeToMapSketch(chromosome);
+
+        // If the map contains no capture zone, reject it
+        if (!mapSketch.Cast<TileType>().Any((tile) => tile == TileType.CapturePoint))
+            return 0;
+
+        // Filter out impossible maps
+        // TODO: find a more efficient way of finding stuff than this mess
+        Vector2? teamOneSpawn = null;
+        Vector2? teamTwoSpawn = null;
+        var captureZone = new List<Vector2>();
+
+        for (int curX = 0; curX < mapWidth / 2; ++curX)
+        {
+            for (int curY = 0; curY < mapLength / 2; ++curY)
+            {
+                if (mapSketch[curX, curY] == TileType.Team1Spawn)
+                {
+                    if (!teamOneSpawn.HasValue)
+                    {
+                        teamOneSpawn = new Vector2(curX, curY);
+                    }
+                }
+                else if (mapSketch[curX, curY] == TileType.Team2Spawn)
+                {
+                    if (!teamTwoSpawn.HasValue)
+                    {
+                        teamTwoSpawn = new Vector2(curX, curY);
+                    }
+                }
+                else if (mapSketch[curX, curY] == TileType.CapturePoint)
+                {
+                    captureZone.Add(new Vector2(curX, curY));
+                }
+            }
+        }
+
+        var mapReachableForTeamOne = FloodFillMapSketch(mapSketch, (int)teamOneSpawn.Value.x, (int)teamOneSpawn.Value.y);
+        var mapReachableForTeamTwo = FloodFillMapSketch(mapSketch, (int)teamTwoSpawn.Value.x, (int)teamTwoSpawn.Value.y);
+
+        var capturePointReachableForTeamOne = captureZone.Any((tile) => mapReachableForTeamOne[(int)tile.x, (int)tile.y]);
+        var capturePointReachableForTeamTwo = captureZone.Any((tile) => mapReachableForTeamTwo[(int)tile.x, (int)tile.y]);
+        
+        if (!capturePointReachableForTeamOne || !capturePointReachableForTeamTwo)
+            return 0;
 
         return chromosome.Genes.Average((gene) =>
         {
@@ -429,6 +556,7 @@ public class MapController : NetworkBehaviour
         currentMapChromosome = fittestMap;
         mapUpdateNeeded = true;
         generationInProgress = false;
+        Debug.Log("Run complete");
     }
 
     private void GenerateWorld()
@@ -455,8 +583,7 @@ public class MapController : NetworkBehaviour
         var crossover = new Crossover(0.8) { CrossoverType = CrossoverType.DoublePoint };
 
         // Create the mutation operator.
-        // var mutation = new MapMutate(0.04);
-        var mutation = new SwapMutate(0.04);
+        var mutation = new MapMutate(0.04, mapWidth / 2, mapHeight / 2);
 
         // Create the genetic algorithm and assign callbacks
         var geneticAlgorithm = new GeneticAlgorithm(population, FitnessFunction);
@@ -469,7 +596,7 @@ public class MapController : NetworkBehaviour
         geneticAlgorithm.Operators.Add(mutation);
 
         // Run the genetic algorithm
-        geneticAlgorithm.Run(Terminate);
+        geneticAlgorithm.RunAsync(Terminate);
     }
 
     #endregion
