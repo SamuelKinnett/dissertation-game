@@ -43,7 +43,7 @@ public class MapController : NetworkBehaviour
 
     private static List<MapChunkController> mapChunks;
 
-    private static int wallHeight = 3;
+    private static int wallHeight = 4;
 
     // GA related variables
     static Chromosome currentMapChromosome;
@@ -107,6 +107,11 @@ public class MapController : NetworkBehaviour
                         // TODO: Set spawn point here
                         break;
 
+                    case TileType.Barrier:
+                        SetLargeBlock(curX, 0, curY, 1);
+                        SetLargeBlock(curX, 1, curY, 1);
+                        break;
+
                     default:
                         for (int i = 0; i < wallHeight; ++i)
                         {
@@ -154,28 +159,23 @@ public class MapController : NetworkBehaviour
             defaultChromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
         }
 
-        // Add the default centre arena
-        defaultChromosome.Genes[0] = new Gene(new Tuple<int, int, int>(12, 12, 8));
-
         // Add the default corridors
-        // TODO: Make these scalable with the map rather than hard coded
-        defaultChromosome.Genes[15] = new Gene(new Tuple<int, int, int>(4, 4, 16));
-        defaultChromosome.Genes[16] = new Gene(new Tuple<int, int, int>(4, 4, -16));
-        defaultChromosome.Genes[17] = new Gene(new Tuple<int, int, int>(12, 27, 16));
-        defaultChromosome.Genes[18] = new Gene(new Tuple<int, int, int>(27, 12, -16));
-        defaultChromosome.Genes[19] = new Gene(new Tuple<int, int, int>(4, 18, 10));
-        defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>(18, 4, -10));
-        defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>(13, 18, 10));
-        defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>(18, 13, -10));
+        var horizontalCorridorLength = mapWidth / 4;
+        var verticalCorridorLength = mapLength / 4;
+
+        // Add the default centre arena
+        defaultChromosome.Genes[0] = new Gene(new Tuple<int, int, int>(horizontalCorridorLength / 2, verticalCorridorLength / 2, horizontalCorridorLength));
+
+        defaultChromosome.Genes[15] = new Gene(new Tuple<int, int, int>(4, 4, horizontalCorridorLength / 2));
+        defaultChromosome.Genes[16] = new Gene(new Tuple<int, int, int>(4, 4, -verticalCorridorLength / 2));
+        defaultChromosome.Genes[17] = new Gene(new Tuple<int, int, int>(4, 4 + verticalCorridorLength / 2, horizontalCorridorLength / 2));
+        defaultChromosome.Genes[18] = new Gene(new Tuple<int, int, int>(4 + horizontalCorridorLength / 2, 4, -verticalCorridorLength / 2));
+        defaultChromosome.Genes[19] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5, horizontalCorridorLength / 2));
+        defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5, (mapLength / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
+        defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5 - verticalCorridorLength / 2, horizontalCorridorLength / 2));
+        defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
 
         currentMapChromosome = defaultChromosome;
-
-        // Add a testing plane to the map
-        //for (int x = 0; x < mapWidth; ++x) {
-        //	for (int z = 0; z < mapLength; ++z) {
-        //		mapData[x, 0, z] = 1;
-        //	}
-        //}
 
         InstantiateChunks();
         GenerateMesh();
@@ -380,9 +380,9 @@ public class MapController : NetworkBehaviour
                 mapSketch[spawnX, spawnY] = TileType.Team1Spawn;
             }
         }
-        for (int spawnX = largeWidth - 8; spawnX < largeWidth - 2; ++spawnX)
+        for (int spawnX = largeWidth - 7; spawnX < largeWidth - 2; ++spawnX)
         {
-            for (int spawnY = largeLength - 8; spawnY < largeLength - 2; ++spawnY)
+            for (int spawnY = largeLength - 7; spawnY < largeLength - 2; ++spawnY)
             {
                 mapSketch[spawnX, spawnY] = TileType.Team2Spawn;
             }

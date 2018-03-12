@@ -470,9 +470,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa2fa4e20ad27884087378f6602f2e73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapWidth: 200
-  mapHeight: 50
-  mapLength: 200
+  setMapWidth: 96
+  setMapHeight: 32
+  setMapLength: 96
   chunkWidth: 16
   chunkHeight: 16
   chunkLength: 16
