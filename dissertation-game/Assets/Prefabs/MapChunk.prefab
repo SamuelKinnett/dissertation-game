@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 64457225581730444}
   - component: {fileID: 23697038252358252}
   - component: {fileID: 33063908272212704}
+  - component: {fileID: 114890086920108294}
   m_Layer: 0
   m_Name: MapChunk
   m_TagString: Untagged
@@ -111,3 +112,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshFilter: {fileID: 33063908272212704}
   meshCollider: {fileID: 64457225581730444}
+  ChunkUpdated: 0
+  textureMapDimensions: {x: 4, y: 4}
+--- !u!114 &114890086920108294
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1658531532845656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SceneId:
+    m_Value: 0
+  m_AssetId:
+    i0: 59
+    i1: 46
+    i2: 171
+    i3: 216
+    i4: 165
+    i5: 203
+    i6: 48
+    i7: 148
+    i8: 91
+    i9: 135
+    i10: 205
+    i11: 82
+    i12: 139
+    i13: 145
+    i14: 21
+    i15: 246
+  m_ServerOnly: 0
+  m_LocalPlayerAuthority: 0

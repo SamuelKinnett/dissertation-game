@@ -10,6 +10,7 @@ public class MapChunkController : NetworkBehaviour
 	[SerializeField] MeshCollider meshCollider;
 
 	public bool ChunkUpdated;
+    public Vector2 textureMapDimensions;
 
 	private Mesh mesh;
 
@@ -18,8 +19,8 @@ public class MapChunkController : NetworkBehaviour
 	private List<Vector2> newUV;
 
 	private float textureUnit = 0.25f;
-	private Vector2 textureStone = new Vector2(1, 0);
-	private Vector2 textureGrass = new Vector2(0, 1);
+	private Vector2 textureWall = new Vector2(1, 0);
+	private Vector2 textureFloor = new Vector2(0, 1);
 
 	private int faceCount;
 
@@ -168,7 +169,7 @@ public class MapChunkController : NetworkBehaviour
 		newVertices.Add(new Vector3(x + 1, y, z + 1));
 		newVertices.Add(new Vector3(x + 1, y, z));
 
-		ApplyTextureToFace(textureStone);
+		ApplyTextureToFace(block - 1);
 	}
 
 	private void CreateCubeNorthFace(int x, int y, int z, byte block)
@@ -179,7 +180,7 @@ public class MapChunkController : NetworkBehaviour
 		newVertices.Add(new Vector3(x, y, z + 1));
 		newVertices.Add(new Vector3(x, y - 1, z + 1));
 
-		ApplyTextureToFace(textureStone);
+		ApplyTextureToFace(block - 1);
 	}
 
 	private void CreateCubeEastFace(int x, int y, int z, byte block)
@@ -190,7 +191,7 @@ public class MapChunkController : NetworkBehaviour
 		newVertices.Add(new Vector3(x + 1, y, z + 1));
 		newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
 
-		ApplyTextureToFace(textureStone);
+		ApplyTextureToFace(block - 1);
 	}
 
 	private void CreateCubeSouthFace(int x, int y, int z, byte block)
@@ -201,7 +202,7 @@ public class MapChunkController : NetworkBehaviour
 		newVertices.Add(new Vector3(x + 1, y, z));
 		newVertices.Add(new Vector3(x + 1, y - 1, z));
 
-		ApplyTextureToFace(textureStone);
+		ApplyTextureToFace(block - 1);
 	}
 
 	private void CreateCubeWestFace(int x, int y, int z, byte block)
@@ -212,7 +213,7 @@ public class MapChunkController : NetworkBehaviour
 		newVertices.Add(new Vector3(x, y, z));
 		newVertices.Add(new Vector3(x, y - 1, z));
 
-		ApplyTextureToFace(textureStone);
+		ApplyTextureToFace(block - 1);
 	}
 
 	private void CreateCubeBottomFace(int x, int y, int z, byte block)
@@ -223,11 +224,13 @@ public class MapChunkController : NetworkBehaviour
 		newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
 		newVertices.Add(new Vector3(x, y - 1, z + 1));
 
-		ApplyTextureToFace(textureStone);
+		ApplyTextureToFace(block - 1);
 	}
 
-	private void ApplyTextureToFace(Vector2 texturePosition)
+	private void ApplyTextureToFace(int textureIndex)
 	{
+        var texturePosition = ConvertTextureIndexToTexturePosition(textureIndex);
+
 		// Generate the triangles
 		var offset = faceCount * 4;
 
@@ -242,10 +245,23 @@ public class MapChunkController : NetworkBehaviour
 		var yOrigin = textureUnit * texturePosition.y;
 
 		newUV.Add(new Vector2(xOrigin, yOrigin));
-		newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin));
-		newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin + textureUnit));
 		newUV.Add(new Vector2(xOrigin, yOrigin + textureUnit));
+		newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin + textureUnit));
+		newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin));
 
 		++faceCount;
 	}
+
+    // Given a texture index, convert it to the corresponding texture
+    // position. Texture indices go from left to right, top to bottom.
+    private Vector2 ConvertTextureIndexToTexturePosition(int textureIndex)
+    {
+        var maxIndex = (int)textureMapDimensions.x * (int)textureMapDimensions.y - 1;
+        var newIndex = Mathf.Clamp(textureIndex, 0, maxIndex);
+
+        var textureX = newIndex % (int)textureMapDimensions.x;
+        var textureY = (textureMapDimensions.y - 1) - (newIndex / (int)textureMapDimensions.y);
+
+        return new Vector2(textureX, textureY);
+    }
 }

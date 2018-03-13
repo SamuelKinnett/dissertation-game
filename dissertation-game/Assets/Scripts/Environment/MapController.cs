@@ -1,38 +1,32 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime;
 
 using UnityEngine;
-using UnityEditor;
 
 using GAF;
-using GAF.Extensions;
 using GAF.Operators;
 using Assets.Scripts.Environment.Enums;
 using Assets.Scripts.Environment.Genetic_Algorithms;
 using UnityEngine.Networking;
+using Assets.Scripts.Environment.Helpers;
 
 public class MapController : NetworkBehaviour
 {
-    // The X, Y and Z dimensions of the map respectively
-    public static int mapWidth;
-    public static int mapHeight;
-    public static int mapLength;
-
-    // Used to set the map size in the insepctor
-    public int setMapWidth;
-    public int setMapHeight;
-    public int setMapLength;
+    // The width, height and depth of the map
+    [SyncVar]
+    public Vector3 mapDimensions;
 
     // The X, Y and Z dimensions of the chunks
     public int chunkWidth;
     public int chunkHeight;
-    public int chunkLength;
+    public int chunkDepth;
 
     // The map chunk prefab
     public GameObject mapChunkPrefab;
+
+    // Used for client map initialisation
+    public bool mapInitialised;
 
     // This array stores the data of the map geometry, with each element representing one 'block'.
     // Current possible values are:
@@ -47,17 +41,18 @@ public class MapController : NetworkBehaviour
 
     // GA related variables
     static Chromosome currentMapChromosome;
+    static Chromosome newMapChromosome;
 
     static bool generationInProgress;
     static bool mapUpdateNeeded;
 
     public byte GetBlock(int x, int y, int z)
     {
-        if (x >= mapWidth ||
+        if (x >= mapDimensions.x ||
             x < 0 ||
-            y >= mapHeight ||
+            y >= mapDimensions.y ||
             y < 0 ||
-            z >= mapLength ||
+            z >= mapDimensions.z ||
             z < 0)
         {
             return 1;
@@ -66,72 +61,22 @@ public class MapController : NetworkBehaviour
         return mapData[x, y, z];
     }
 
-    public static void SetBlock(int x, int y, int z, byte block)
+    public void SetBlock(int x, int y, int z, BlockType block)
     {
-        x = Mathf.Clamp(x, 0, mapWidth - 1);
-        y = Mathf.Clamp(y, 0, mapHeight - 1);
-        z = Mathf.Clamp(z, 0, mapLength - 1);
+        x = Mathf.Clamp(x, 0, (int)mapDimensions.x - 1);
+        y = Mathf.Clamp(y, 0, (int)mapDimensions.y - 1);
+        z = Mathf.Clamp(z, 0, (int)mapDimensions.z - 1);
 
-        if (mapData[x, y, z] != block)
+        if (mapData[x, y, z] != (byte)block)
         {
-            mapData[x, y, z] = block;
+            mapData[x, y, z] = (byte)block;
 
             // Find the modified chunk and update it's changed flag
             mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
         }
     }
 
-    public static void UpdateMapWithMapSketch(TileType[,] mapSketch)
-    {
-        for (int curX = 0; curX < mapWidth / 2; ++curX)
-        {
-            for (int curY = 0; curY < mapLength / 2; ++curY)
-            {
-                switch (mapSketch[curX, curY])
-                {
-                    case TileType.Impassable:
-                        for (int i = 0; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 1);
-                        }
-                        break;
-
-                    case TileType.Passable:
-                        SetLargeBlock(curX, 0, curY, 1);
-                        break;
-
-                    case TileType.Team1Spawn:
-                        SetLargeBlock(curX, 0, curY, 1);
-                        // TODO: Set spawn point here
-                        break;
-
-                    case TileType.Team2Spawn:
-                        SetLargeBlock(curX, 0, curY, 1);
-                        // TODO: Set spawn point here
-                        break;
-
-                    case TileType.Barrier:
-                        SetLargeBlock(curX, 0, curY, 1);
-                        SetLargeBlock(curX, 1, curY, 1);
-                        break;
-
-                    case TileType.CapturePoint:
-                        SetLargeBlock(curX, 0, curY, 1);
-                        SetLargeBlock(curX, 4, curY, 1);
-                        break;
-
-                    default:
-                        for (int i = 0; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 1);
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    private static void SetLargeBlock(int x, int y, int z, byte block)
+    public void SetLargeBlock(int x, int y, int z, BlockType block)
     {
         var tempX = x * 2;
         var tempY = y * 2;
@@ -147,14 +92,90 @@ public class MapController : NetworkBehaviour
         SetBlock(tempX + 1, tempY + 1, tempZ + 1, block);
     }
 
+    public void UpdateMapWithMapSketch(TileType[,] mapSketch)
+    {
+        var mapSketchWidth = (int)mapDimensions.x / 2;
+        var mapSketchHeight = (int)mapDimensions.z / 2;
+
+        for (int curX = 0; curX < mapSketchWidth; ++curX)
+        {
+            for (int curY = 0; curY < mapSketchHeight; ++curY)
+            {
+                switch (mapSketch[curX, curY])
+                {
+                    case TileType.Impassable:
+                        for (int i = 0; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, BlockType.Wall);
+                        }
+                        break;
+
+                    case TileType.Passable:
+                        SetLargeBlock(curX, 0, curY, BlockType.Floor);
+                        for (int i = 1; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        break;
+
+                    case TileType.Team1Spawn:
+                        SetLargeBlock(curX, 0, curY, BlockType.Team1Spawn);
+                        for (int i = 1; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        // TODO: Set spawn point here
+                        break;
+
+                    case TileType.Team2Spawn:
+                        SetLargeBlock(curX, 0, curY, BlockType.Team2Spawn);
+                        for (int i = 1; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        // TODO: Set spawn point here
+                        break;
+
+                    case TileType.Barrier:
+                        SetLargeBlock(curX, 0, curY, BlockType.Wall);
+                        SetLargeBlock(curX, 1, curY, BlockType.Wall);
+                        for (int i = 2; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        break;
+
+                    case TileType.CapturePoint:
+                        SetLargeBlock(curX, 0, curY, BlockType.CapturePoint);
+                        for (int i = 1; i < wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        break;
+
+                    default:
+                        for (int i = 0; i < 2; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, BlockType.Wall);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
     // Use this for initialization
     private void Start()
     {
-        mapWidth = setMapWidth;
-        mapHeight = setMapHeight;
-        mapLength = setMapLength;
+        mapInitialised = false;
 
-        mapData = new byte[mapWidth, mapHeight, mapLength];
+        if (isServer)
+        {
+            GeneticAlgorithmHelpers.mapSketchWidth = (int)mapDimensions.x / 2;
+            GeneticAlgorithmHelpers.mapSketchHeight = (int)mapDimensions.z / 2;
+        }
+
+        mapData = new byte[(int)mapDimensions.x, (int)mapDimensions.y, (int)mapDimensions.z];
         mapChunks = new List<MapChunkController>();
 
         mapUpdateNeeded = false;
@@ -167,8 +188,8 @@ public class MapController : NetworkBehaviour
             defaultChromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
         }
 
-        var horizontalCorridorLength = mapWidth / 4;
-        var verticalCorridorLength = mapLength / 4;
+        var horizontalCorridorLength = (int)mapDimensions.x / 4;
+        var verticalCorridorLength = (int)mapDimensions.z / 4;
 
         // Add the default centre arena
         defaultChromosome.Genes[0] = new Gene(new Tuple<int, int, int>(horizontalCorridorLength / 2, verticalCorridorLength / 2, horizontalCorridorLength));
@@ -178,13 +199,13 @@ public class MapController : NetworkBehaviour
         defaultChromosome.Genes[16] = new Gene(new Tuple<int, int, int>(4, 4, -verticalCorridorLength / 2));
         defaultChromosome.Genes[17] = new Gene(new Tuple<int, int, int>(4, 4 + verticalCorridorLength / 2, horizontalCorridorLength / 2));
         defaultChromosome.Genes[18] = new Gene(new Tuple<int, int, int>(4 + horizontalCorridorLength / 2, 4, -verticalCorridorLength / 2));
-        defaultChromosome.Genes[19] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5, horizontalCorridorLength / 2));
-        defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5, (mapLength / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
-        defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5 - verticalCorridorLength / 2, horizontalCorridorLength / 2));
-        defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>((mapWidth / 2) - 5 - horizontalCorridorLength / 2, (mapLength / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
+        defaultChromosome.Genes[19] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5, horizontalCorridorLength / 2));
+        defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
+        defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, horizontalCorridorLength / 2));
+        defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
 
         // Add the default capture point
-        defaultChromosome.Genes[44] = new Gene(new Tuple<int, int, int>(mapWidth / 4 - 1, mapLength / 4 - 1, 2));
+        defaultChromosome.Genes[44] = new Gene(new Tuple<int, int, int>((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2));
 
         currentMapChromosome = defaultChromosome;
 
@@ -197,20 +218,20 @@ public class MapController : NetworkBehaviour
     {
         if (mapUpdateNeeded)
         {
-            UpdateMapWithMapSketch(ConvertChromosomeToMapSketch(currentMapChromosome));
+            UpdateMapWithMapSketch(MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2));
             GenerateMesh();
             mapUpdateNeeded = false;
 
             // Testing
-            GenerateWorld();
+            // GenerateWorld();
         }
     }
 
     private void InstantiateChunks()
     {
-        int mapWidthInChunks = (int)System.Math.Ceiling((double)mapWidth / (double)chunkWidth);
-        int mapHeightInChunks = (int)System.Math.Ceiling((double)mapHeight / (double)chunkHeight);
-        int mapLengthInChunks = (int)System.Math.Ceiling((double)mapLength / (double)chunkLength);
+        int mapWidthInChunks = (int)System.Math.Ceiling(mapDimensions.x / (double)chunkWidth);
+        int mapHeightInChunks = (int)System.Math.Ceiling(mapDimensions.y / (double)chunkHeight);
+        int mapLengthInChunks = (int)System.Math.Ceiling(mapDimensions.z / (double)chunkDepth);
 
         Debug.Log("Instantiating Chunks (" + mapWidthInChunks + ", " + mapHeightInChunks + ", " + mapLengthInChunks + ")");
 
@@ -226,7 +247,7 @@ public class MapController : NetworkBehaviour
 
                     // Initialise the chunk
                     var newChunkController = newChunk.GetComponent<MapChunkController>();
-                    newChunkController.Initialise(x * chunkWidth, y * chunkHeight, z * chunkLength, chunkWidth, chunkHeight, chunkLength);
+                    newChunkController.Initialise(x * chunkWidth, y * chunkHeight, z * chunkDepth, chunkWidth, chunkHeight, chunkDepth);
 
                     // Add the chunk to the list
                     mapChunks.Add(newChunkController);
@@ -245,305 +266,13 @@ public class MapController : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// Converts a chromosome into a map sketch
-    /// </summary>
-    public static TileType[,] ConvertChromosomeToMapSketch(Chromosome newChromosome)
-    {
-        // The map sketch works on a different resolution than the normal
-        // grid, so we need to calculate a new width/height for this.
-        var largeWidth = mapWidth / 2;
-        var largeLength = mapLength / 2;
-
-        // Create a new map sketch filled with impassable tiles
-        var mapSketch = new TileType[largeWidth, largeLength];
-
-        // Build the map
-        for (int currentGeneIndex = 0; currentGeneIndex < newChromosome.Genes.Count; ++currentGeneIndex)
-        {
-            var geneTuple = (Tuple<int, int, int>)newChromosome.Genes[currentGeneIndex].ObjectValue;
-            if (currentGeneIndex < 15)
-            {
-                // This gene is an arena
-                int arenaX = geneTuple.Item1;
-                int arenaY = geneTuple.Item2;
-                int arenaSize = geneTuple.Item3;
-                for (int curX = arenaX; curX < arenaX + arenaSize; ++curX)
-                {
-                    for (int curY = arenaY; curY < arenaY + arenaSize; ++curY)
-                    {
-                        if (curX >= 0 &&
-                            curY >= 0 &&
-                            curX < largeWidth &&
-                            curY < largeLength)
-                        {
-                            mapSketch[curX, curY] = TileType.Passable;
-                        }
-                    }
-                }
-            }
-            else if (currentGeneIndex < 40)
-            {
-                // This gene is a corridor or a barrier. Both are encoded in a
-                // similar manner and so we'll consider them at the same time.
-                int corridorX = geneTuple.Item1;
-                int corridorY = geneTuple.Item2;
-                int corridorLength = geneTuple.Item3;
-
-                if (corridorLength > 1)
-                {
-                    // Horizontal corridor/barrier
-                    for (int curX = corridorX; curX < corridorX + corridorLength; ++curX)
-                    {
-                        if (currentGeneIndex < 30)
-                        {
-                            // This is a corridor
-                            // All corridors have a fixed width of three tiles
-                            for (int i = -1; i < 2; ++i)
-                            {
-                                if (curX >= 0 &&
-                                    corridorY + i >= 0 &&
-                                    curX < largeWidth &&
-                                    corridorY + i < largeLength)
-                                {
-                                    mapSketch[curX, corridorY + i] = TileType.Passable;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // This is a barrier
-                            // All barriers are only one tile thick
-                            if (curX >= 0 &&
-                                corridorY >= 0 &&
-                                curX < largeWidth &&
-                                corridorY < largeLength)
-                            {
-                                mapSketch[curX, corridorY] = TileType.Barrier;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // Vertical corridor/barrier
-                    for (int curY = corridorY; curY < corridorY - corridorLength; ++curY)
-                    {
-                        if (currentGeneIndex < 30)
-                        {
-                            // This is a corridor
-                            // All corridors have a fixed width of three tiles
-                            for (int i = -1; i < 2; ++i)
-                            {
-                                if (curY >= 0 &&
-                                    corridorX + i >= 0 &&
-                                    curY < largeLength &&
-                                    corridorX + i < largeWidth)
-                                {
-                                    mapSketch[corridorX + i, curY] = TileType.Passable;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // This is a barrier
-                            // All barriers are only one tile thick
-                            if (curY >= 0 &&
-                                corridorX >= 0 &&
-                                curY < largeLength &&
-                                corridorX < largeWidth)
-                            {
-                                mapSketch[corridorX, curY] = TileType.Barrier;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (currentGeneIndex < 44)
-            {
-                var pickupX = geneTuple.Item1;
-                var pickupY = geneTuple.Item2;
-                var pickupValue = (PickupType)geneTuple.Item3;
-                // This gene is a pickup
-
-                var mapSketchPickupValue = TileType.Passable;
-                switch (pickupValue)
-                {
-                    case PickupType.Health:
-                        mapSketchPickupValue = TileType.HealthPickup;
-                        break;
-                }
-
-                mapSketch[pickupX, pickupY] = mapSketchPickupValue;
-            }
-            else
-            {
-                // This gene is the capture point
-                var capturePointX = geneTuple.Item1;
-                var capturePointY = geneTuple.Item2;
-                var capturePointSize = geneTuple.Item3;
-
-                for (int curX = capturePointX; curX < capturePointX + capturePointSize; ++curX)
-                {
-                    for (int curY = capturePointY; curY < capturePointY + capturePointSize; ++curY)
-                    {
-                        if (curX >= 0 &&
-                            curX < largeWidth &&
-                            curY >= 0 &&
-                            curY < largeLength)
-                        {
-                            mapSketch[curX, curY] = TileType.CapturePoint;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Add in the default spawn rooms
-        for (int spawnX = 2; spawnX < 7; ++spawnX)
-        {
-            for (int spawnY = 2; spawnY < 7; ++spawnY)
-            {
-                mapSketch[spawnX, spawnY] = TileType.Team1Spawn;
-            }
-        }
-        for (int spawnX = largeWidth - 7; spawnX < largeWidth - 2; ++spawnX)
-        {
-            for (int spawnY = largeLength - 7; spawnY < largeLength - 2; ++spawnY)
-            {
-                mapSketch[spawnX, spawnY] = TileType.Team2Spawn;
-            }
-        }
-
-        return mapSketch;
-    }
-
-    public static bool[,] FloodFillMapSketch(TileType[,] mapSketch, int startX, int startY)
-    {
-        // This queue stores all tiles currently being considered
-        Queue<Tuple<int, int>> tiles = new Queue<Tuple<int, int>>();
-
-        // This array stores true if a tile can be reached from the starting tile
-        bool[,] reachableTiles = new bool[mapWidth / 2, mapLength / 2];
-
-        // This array stores true if a tile has been visited already by the algorithm
-        bool[,] visitedTiles = new bool[mapWidth / 2, mapLength / 2];
-
-        // Initialise the queue
-        tiles.Enqueue(new Tuple<int, int>(startX, startY));
-        visitedTiles[startX, startY] = true;
-
-        while (tiles.Count > 0)
-        {
-            var currentTile = tiles.Dequeue();
-
-            var x = (int)currentTile.Item1;
-            var y = (int)currentTile.Item2;
-
-            // If this tile isn't impassable then add its neighbours to
-            // the queue
-            if (mapSketch[x, y] != TileType.Impassable)
-            {
-                reachableTiles[x, y] = true;
-
-                if (x + 1 < mapWidth / 2 - 1 &&
-                    !visitedTiles[x + 1, y])
-                {
-                    tiles.Enqueue(new Tuple<int, int>(x + 1, y));
-                    visitedTiles[x + 1, y] = true;
-                }
-                if (x - 1 > 0 &&
-                    !visitedTiles[x - 1, y])
-                {
-                    tiles.Enqueue(new Tuple<int, int>(x - 1, y));
-                    visitedTiles[x - 1, y] = true;
-                }
-                if (y + 1 < mapLength / 2 - 1 &&
-                    !visitedTiles[x, y + 1])
-                {
-                    tiles.Enqueue(new Tuple<int, int>(x, y + 1));
-                    visitedTiles[x, y + 1] = true;
-                }
-                if (y - 1 > 0 &&
-                    !visitedTiles[x, y - 1])
-                {
-                    tiles.Enqueue(new Tuple<int, int>(x, y - 1));
-                    visitedTiles[x, y - 1] = true;
-                }
-            }
-        }
-
-        return reachableTiles;
-    }
-
     #region Genetic Algorithms
-
-    public static double FitnessFunction(Chromosome chromosome)
-    {
-        var mapSketch = ConvertChromosomeToMapSketch(chromosome);
-
-        // If the map contains no capture zone, reject it
-        if (!mapSketch.Cast<TileType>().Any((tile) => tile == TileType.CapturePoint))
-            return 0;
-
-        // Filter out impossible maps
-        // TODO: find a more efficient way of finding stuff than this mess
-        Vector2? teamOneSpawn = null;
-        Vector2? teamTwoSpawn = null;
-        var captureZone = new List<Vector2>();
-
-        for (int curX = 0; curX < mapWidth / 2; ++curX)
-        {
-            for (int curY = 0; curY < mapLength / 2; ++curY)
-            {
-                if (mapSketch[curX, curY] == TileType.Team1Spawn)
-                {
-                    if (!teamOneSpawn.HasValue)
-                    {
-                        teamOneSpawn = new Vector2(curX, curY);
-                    }
-                }
-                else if (mapSketch[curX, curY] == TileType.Team2Spawn)
-                {
-                    if (!teamTwoSpawn.HasValue)
-                    {
-                        teamTwoSpawn = new Vector2(curX, curY);
-                    }
-                }
-                else if (mapSketch[curX, curY] == TileType.CapturePoint)
-                {
-                    captureZone.Add(new Vector2(curX, curY));
-                }
-            }
-        }
-
-        var mapReachableForTeamOne = FloodFillMapSketch(mapSketch, (int)teamOneSpawn.Value.x, (int)teamOneSpawn.Value.y);
-        var mapReachableForTeamTwo = FloodFillMapSketch(mapSketch, (int)teamTwoSpawn.Value.x, (int)teamTwoSpawn.Value.y);
-
-        var capturePointReachableForTeamOne = captureZone.Any((tile) => mapReachableForTeamOne[(int)tile.x, (int)tile.y]);
-        var capturePointReachableForTeamTwo = captureZone.Any((tile) => mapReachableForTeamTwo[(int)tile.x, (int)tile.y]);
-        
-        if (!capturePointReachableForTeamOne || !capturePointReachableForTeamTwo)
-            return 0;
-
-        return chromosome.Genes.Average((gene) =>
-        {
-            var tuple = (Tuple<int, int, int>)gene.ObjectValue;
-            return (tuple.Item1 > 0 && tuple.Item2 > 0 && tuple.Item3 > 0) ? 1 : 0;
-        });
-    }
-
-    public static bool Terminate(Population population, int currentGeneration, long currentEvaluation)
-    {
-        return currentGeneration > 10;
-    }
 
     /// <summary>
     /// Callback for when the GA has finished a generation
     /// </summary>
     public static void ga_OnGenerationComplete(object sender, GaEventArgs e)
     {
-        var test = 1;
     }
 
     /// <summary>
@@ -583,10 +312,10 @@ public class MapController : NetworkBehaviour
         var crossover = new Crossover(0.8) { CrossoverType = CrossoverType.DoublePoint };
 
         // Create the mutation operator.
-        var mutation = new MapMutate(0.04, mapWidth / 2, mapHeight / 2);
+        var mutation = new MapMutate(0.04, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2);
 
         // Create the genetic algorithm and assign callbacks
-        var geneticAlgorithm = new GeneticAlgorithm(population, FitnessFunction);
+        var geneticAlgorithm = new GeneticAlgorithm(population, GeneticAlgorithmHelpers.FitnessFunction);
         geneticAlgorithm.OnGenerationComplete += ga_OnGenerationComplete;
         geneticAlgorithm.OnRunComplete += ga_OnRunComplete;
 
@@ -596,364 +325,7 @@ public class MapController : NetworkBehaviour
         geneticAlgorithm.Operators.Add(mutation);
 
         // Run the genetic algorithm
-        geneticAlgorithm.RunAsync(Terminate);
-    }
-
-    #endregion
-
-    #region testing
-
-    /// <summary>
-    /// This method repeatedly uses cellular automata with decreasing probability to
-    /// generate land in order to build the terrain.
-    /// </summary>
-    private void GenerateCellularAutomataWorld()
-    {
-        // int[,] heightMap = new int[worldWidth, worldHeight]; //this array stores the height of each chunk. 0 = bedrock layer, 1 - 8 = ocean, 9 - 31 = land
-        byte[,] temporaryMap = new byte[mapWidth, mapLength]; //this array is used in the generation process to create the layer before it is applied to the heightmap
-
-        int neighbourCount = 0; //this is used to store the number of 'alive' tiles surrounding a cell;
-
-        System.Random rand = new System.Random();
-
-        //fileManager.CreateWorldFolder(worldName);
-        double landChance = 0.78;
-
-        //fill the heightmap with bedrock (lowest layer)
-        for (int x = 0; x < mapWidth; ++x)
-        {
-            for (int z = 0; z < mapLength; ++z)
-            {
-                mapData[x, 0, z] = 1;
-            }
-        }
-
-        for (int y = 1; y < mapHeight - 1; ++y)
-        { //for each height level
-          //clear the arrays of their previous contents
-            Array.Clear(temporaryMap, 0, temporaryMap.Length);
-
-            //firstly, fill most of the available area with random values (0 = empty space, 1 = filled).
-            for (int tempZ = 2; tempZ < mapLength - 2; ++tempZ)
-            {
-                for (int tempX = 2; tempX < mapWidth - 2; ++tempX)
-                {
-                    if (rand.NextDouble() < landChance && GetBlock(tempX, y - 1, tempZ) > 0)
-                    {
-                        temporaryMap[tempX, tempZ] = 1;
-                    }
-                }
-            }
-
-            //then, simulate a 4-5 rule cellular automata 7 times
-            //for the first 4 times, also fill in areas with 0 neighbours
-
-            for (int generation = 0; generation < 5; generation++)
-            {
-                for (int tempZ = 0; tempZ < mapLength; tempZ++)
-                {
-                    for (int tempX = 0; tempX < mapWidth; ++tempX)
-                    {
-
-                        neighbourCount = GetNeighbourCount(tempX, tempZ, temporaryMap);
-
-                        if (neighbourCount >= 5 || neighbourCount == 0)
-                        {
-                            //testing: only fill if less than the random number
-                            if (rand.NextDouble() < landChance && GetBlock(tempX, y - 1, tempZ) > 0)
-                            {
-                                temporaryMap[tempX, tempZ] = 1;
-                            }
-                        }
-                        else
-                        {
-                            temporaryMap[tempX, tempZ] = 0;
-                        }
-
-                    }
-                }
-            }
-
-            //for the last three times, only use the 4-5 rule
-
-            for (int generation = 0; generation < 4; generation++)
-            {
-                for (int tempZ = 0; tempZ < mapLength; tempZ++)
-                {
-                    for (int tempX = 0; tempX < mapWidth; tempX++)
-                    {
-
-                        neighbourCount = GetNeighbourCount(tempX, tempZ, temporaryMap);
-
-                        if (neighbourCount >= 5)
-                        {
-                            temporaryMap[tempX, tempZ] = 1;
-                        }
-                        else
-                        {
-                            temporaryMap[tempX, tempZ] = 0;
-                        }
-
-                    }
-                }
-            }
-
-            landChance -= 0.01; //make the next level more sparse
-
-            //apply the layer to the heightmap
-
-            for (int tempZ = 0; tempZ < mapLength; tempZ++)
-            {
-                for (int tempX = 0; tempX < mapWidth; tempX++)
-                {
-                    if (temporaryMap[tempX, tempZ] == 1)
-                    {
-                        mapData[tempX, y, tempZ] = 1;
-                    }
-                }
-            }
-
-        }
-    }
-
-    private int GetNeighbourCount(int x, int z, byte[,] temporaryMap)
-    {
-        int neighbourCount = 0;
-
-        if (z != 0 && z != (mapLength - 1) && x != 0 && x != (mapWidth - 1))
-        { //normal comparisons of non-border tiles
-            if (temporaryMap[x, z] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x + 1, z + 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x + 1, z] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x + 1, z - 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x, z - 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x - 1, z - 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x - 1, z] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x - 1, z + 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x, z + 1] == 1)
-            {
-                neighbourCount++;
-            }
-        }
-        else if (z == 0)
-        {
-            if (x == 0)
-            { //top left corner
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-            else if (x == mapWidth - 1)
-            { //top right corner
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-            else
-            { //anywhere along the top border
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-        }
-        else if (x == 0)
-        {
-            if (z == mapLength - 1)
-            { //bottom left corner
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-            else
-            { //anywhere along the left border.
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z + 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-        }
-        else if (z == mapLength - 1)
-        {
-            if (x == mapWidth - 1)
-            { //bottom right corner
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-            else
-            { //anywhere along the bottom border
-                if (temporaryMap[x, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x - 1, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z] == 1)
-                {
-                    neighbourCount++;
-                }
-                if (temporaryMap[x + 1, z - 1] == 1)
-                {
-                    neighbourCount++;
-                }
-            }
-        }
-        else if (x == mapWidth - 1)
-        { //anywhere along the right border
-            if (temporaryMap[x, z] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x, z + 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x, z - 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x - 1, z] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x - 1, z + 1] == 1)
-            {
-                neighbourCount++;
-            }
-            if (temporaryMap[x - 1, z - 1] == 1)
-            {
-                neighbourCount++;
-            }
-        }
-
-        return neighbourCount;
+        geneticAlgorithm.RunAsync(GeneticAlgorithmHelpers.Terminate);
     }
 
     #endregion

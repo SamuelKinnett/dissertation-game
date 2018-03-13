@@ -24,9 +24,19 @@ namespace Assets.Scripts.Environment.Genetic_Algorithms
 
         protected override void MutateGene(Gene gene)
         {
+            // Randomly choose a new x and y value
             var rand = new System.Random();
 
-            gene.ObjectValue = new Tuple<int, int, int>(rand.Next(0, mapWidth), rand.Next(0, mapHeight), rand.Next(0, Mathf.Min(mapWidth, mapHeight)));
+            var newX = rand.Next(0, mapWidth);
+            var newY = rand.Next(0, mapHeight);
+
+            // Randomly choose a new z value, first deciding whether to use a
+            // 'vertical' or 'horizontal' value
+            var newZ = rand.Next(0, 2) == 0 
+                ? rand.Next(0, mapWidth - newX)     // Horizontal
+                : rand.Next(-mapHeight + newY, 1);  // Vertical
+
+            gene.ObjectValue = new Tuple<int, int, int>(newX, newY, newZ);
         }
     }
 }
