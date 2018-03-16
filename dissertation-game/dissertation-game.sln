@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2017
+# Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dissertation-game", "dissertation-game.csproj", "{C436F7E2-515F-1130-A427-B78C4C628A0A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dissertation-game.Editor", "dissertation-game.Editor.csproj", "{689E8670-87B3-5C80-9EDA-D71C0F7C5374}"

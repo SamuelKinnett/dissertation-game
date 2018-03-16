@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -142,9 +141,6 @@ public class MapChunkController : NetworkBehaviour
 		mesh.SetVertices(newVertices);
 		mesh.SetUVs(0, newUV);
 		mesh.SetTriangles(newTriangles, 0);
-
-		// Optimise the mesh
-		MeshUtility.Optimize(mesh);
 
 		// Recalculate normals
 		mesh.RecalculateNormals();
