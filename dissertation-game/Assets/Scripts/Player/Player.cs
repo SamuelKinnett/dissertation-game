@@ -5,6 +5,8 @@ using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
+using Assets.Scripts.Player.Enums;
+
 [System.Serializable]
 public class ToggleEvent : UnityEvent<bool>
 {
@@ -13,7 +15,7 @@ public class ToggleEvent : UnityEvent<bool>
 public class Player : NetworkBehaviour
 {
 	[SyncVar(hook = "OnNameChanged")] public string PlayerName;
-	[SyncVar(hook = "OnColourChanged")] public Color PlayerColour;
+    [SyncVar(hook = "OnTeamChanged")] public Team PlayerTeam;
 
 	[SerializeField] ToggleEvent onToggleShared;
 	[SerializeField] ToggleEvent onToggleLocal;
@@ -123,15 +125,9 @@ public class Player : NetworkBehaviour
 		playerNameText.text = PlayerName;
 	}
 
-	/// <summary>
-	/// Raises the colour changed event.
-	/// </summary>
-	/// <param name="value">The new colour value.</param>
-	private void OnColourChanged(Color value)
-	{
-		PlayerColour = value;
-		// Change colour of player model here
-	}
+    private void OnTeamChanged(Team newValue)
+    {
+    }
 
 	private void BackToLobby()
 	{

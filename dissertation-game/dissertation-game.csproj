@@ -287,6 +287,9 @@
     <Reference Include="GAF.46">
       <HintPath>Assets/packages/GAF.2.3.1/lib/net46/GAF.46.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Assets/packages/Newtonsoft.Json.11.0.1/lib/net45/Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.Advertisements">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.3/UnityEngine.Advertisements.dll</HintPath>
     </Reference>
@@ -307,9 +310,6 @@
     </Reference>
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.10/UnityEngine.StandardEvents.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>Assets/packages/Newtonsoft.Json.11.0.1/lib/net45/Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -388,6 +388,7 @@
     <Compile Include="Assets\Scripts\Environment\MapController.cs" />
     <Compile Include="Assets\Scripts\Environment\Structs\SyncListTuple.cs" />
     <Compile Include="Assets\Scripts\Network\GameLobbyHook.cs" />
+    <Compile Include="Assets\Scripts\Player\Enums\Team.cs" />
     <Compile Include="Assets\Scripts\Player\GunPositionSync.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCanvasController.cs" />

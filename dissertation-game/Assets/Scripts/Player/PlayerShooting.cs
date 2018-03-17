@@ -53,7 +53,6 @@ public class PlayerShooting : NetworkBehaviour
 		RaycastHit hit;
 
 		Ray ray = new Ray(origin, direction);
-		Debug.DrawRay(ray.origin, ray.direction * 30f, Color.red, 1f);
 
 		bool result = Physics.Raycast(ray, out hit, 50f);
 
