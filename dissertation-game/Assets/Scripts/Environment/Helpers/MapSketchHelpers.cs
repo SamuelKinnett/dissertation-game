@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Assets.Scripts.Environment.Enums;
+using Assets.Scripts.Environment.Structs;
 
 using GAF;
 using UnityEngine;
@@ -24,13 +25,13 @@ namespace Assets.Scripts.Environment.Helpers
             // Build the map
             for (int currentGeneIndex = 0; currentGeneIndex < newChromosome.Genes.Count; ++currentGeneIndex)
             {
-                var geneTuple = (Tuple<int, int, int>)newChromosome.Genes[currentGeneIndex].ObjectValue;
+                var geneTuple = (GeneTuple)newChromosome.Genes[currentGeneIndex].ObjectValue;
                 if (currentGeneIndex < 15)
                 {
                     // This gene is an arena
-                    int arenaX = geneTuple.Item1;
-                    int arenaY = geneTuple.Item2;
-                    int arenaSize = Mathf.Abs(geneTuple.Item3);
+                    int arenaX = geneTuple.X;
+                    int arenaY = geneTuple.Y;
+                    int arenaSize = Mathf.Abs(geneTuple.Z);
                     for (int curX = arenaX; curX < arenaX + arenaSize; ++curX)
                     {
                         for (int curY = arenaY; curY < arenaY + arenaSize; ++curY)
@@ -49,9 +50,9 @@ namespace Assets.Scripts.Environment.Helpers
                 {
                     // This gene is a corridor or a barrier. Both are encoded in a
                     // similar manner and so we'll consider them at the same time.
-                    int corridorX = geneTuple.Item1;
-                    int corridorY = geneTuple.Item2;
-                    int corridorLength = geneTuple.Item3;
+                    int corridorX = geneTuple.X;
+                    int corridorY = geneTuple.Y;
+                    int corridorLength = geneTuple.Z;
 
                     if (corridorLength > 1)
                     {
@@ -124,17 +125,17 @@ namespace Assets.Scripts.Environment.Helpers
                 }
                 else if (currentGeneIndex < 44)
                 {
-                    var pickupX = geneTuple.Item1;
-                    var pickupY = geneTuple.Item2;
+                    var pickupX = geneTuple.X;
+                    var pickupY = geneTuple.Y;
 
                     mapSketch[pickupX, pickupY] = TileType.HealthPickup;
                 }
                 else
                 {
                     // This gene is the capture point
-                    var capturePointX = geneTuple.Item1;
-                    var capturePointY = geneTuple.Item2;
-                    var capturePointSize = geneTuple.Item3;
+                    var capturePointX = geneTuple.X;
+                    var capturePointY = geneTuple.Y;
+                    var capturePointSize = geneTuple.Z;
 
                     for (int curX = capturePointX; curX < capturePointX + capturePointSize; ++curX)
                     {

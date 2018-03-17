@@ -1,22 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
+using UnityEngine.Networking;
+
+using Assets.Scripts.Environment.Enums;
+using Assets.Scripts.Environment.Genetic_Algorithms;
+using Assets.Scripts.Environment.Helpers;
+using Assets.Scripts.Environment.Structs;
 
 using GAF;
 using GAF.Operators;
-using Assets.Scripts.Environment.Enums;
-using Assets.Scripts.Environment.Genetic_Algorithms;
-using UnityEngine.Networking;
-using Assets.Scripts.Environment.Helpers;
-using Newtonsoft.Json;
+
+public class SyncListGeneTuple : SyncListStruct<GeneTuple>
+{
+}
 
 public class MapController : NetworkBehaviour
 {
     // The width, height and depth of the map
     [SyncVar(hook = "OnDimensionsChanged")]
     public Vector3 mapDimensions;
+
+    // Used to reduce the number of map updates on the clients
+    [SyncVar(hook = "OnUpdatingGenesChanged")]
+    public bool updatingGenes;
 
     // The X, Y and Z dimensions of the chunks
     public int chunkWidth;
@@ -26,8 +34,8 @@ public class MapController : NetworkBehaviour
     // The map chunk prefab
     public GameObject mapChunkPrefab;
 
-    // Used for client map initialisation
-    public bool mapInitialised;
+    // This SyncList stores the tuples that form the genotype
+    private SyncListGeneTuple currentGenes = new SyncListGeneTuple();
 
     // This array stores the data of the map geometry, with each element representing one 'block'.
     // A 0 represents empty space, numbers above this represent different block types.
@@ -39,7 +47,6 @@ public class MapController : NetworkBehaviour
 
     // GA related variables
     static Chromosome currentMapChromosome;
-    static Chromosome newMapChromosome;
 
     static bool generationInProgress;
     static bool mapUpdateNeeded;
@@ -65,6 +72,12 @@ public class MapController : NetworkBehaviour
         Debug.Log("Run complete");
     }
 
+    public override void OnStartClient()
+    {
+        currentGenes.Callback = OnCurrentGenesUpdated;
+        base.OnStartClient();
+    }
+
     public byte GetBlock(int x, int y, int z)
     {
         if (x >= mapDimensions.x ||
@@ -80,7 +93,7 @@ public class MapController : NetworkBehaviour
         return mapData[x, y, z];
     }
 
-    public void SetBlock(int x, int y, int z, BlockType block)
+    public void SetBlock(int x, int y, int z, BlockType block, bool updateChunk = true)
     {
         x = Mathf.Clamp(x, 0, (int)mapDimensions.x - 1);
         y = Mathf.Clamp(y, 0, (int)mapDimensions.y - 1);
@@ -90,8 +103,11 @@ public class MapController : NetworkBehaviour
         {
             mapData[x, y, z] = (byte)block;
 
-            // Find the modified chunk and update it's changed flag
-            mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
+            if (updateChunk)
+            {
+                // Find the modified chunk and update it's changed flag
+                mapChunks.Single((mc) => mc.Contains(x, y, z)).ChunkUpdated = true;
+            }
         }
     }
 
@@ -101,14 +117,23 @@ public class MapController : NetworkBehaviour
         var tempY = y * 2;
         var tempZ = z * 2;
 
-        SetBlock(tempX, tempY, tempZ, block);
-        SetBlock(tempX + 1, tempY, tempZ, block);
-        SetBlock(tempX, tempY + 1, tempZ, block);
-        SetBlock(tempX + 1, tempY + 1, tempZ, block);
-        SetBlock(tempX, tempY, tempZ + 1, block);
-        SetBlock(tempX + 1, tempY, tempZ + 1, block);
-        SetBlock(tempX, tempY + 1, tempZ + 1, block);
-        SetBlock(tempX + 1, tempY + 1, tempZ + 1, block);
+        SetBlock(tempX, tempY, tempZ, block, false);
+        SetBlock(tempX + 1, tempY, tempZ, block, false);
+        SetBlock(tempX, tempY + 1, tempZ, block, false);
+        SetBlock(tempX + 1, tempY + 1, tempZ, block, false);
+        SetBlock(tempX, tempY, tempZ + 1, block, false);
+        SetBlock(tempX + 1, tempY, tempZ + 1, block, false);
+        SetBlock(tempX, tempY + 1, tempZ + 1, block, false);
+        SetBlock(tempX + 1, tempY + 1, tempZ + 1, block, false);
+    }
+
+    private void UpdateMapWithCurrentGenes()
+    {
+        currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
+        Debug.Log("Updated current chromosome");
+
+        UpdateMapWithMapSketch(MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2));
+        Debug.Log("Updated map");
     }
 
     public void UpdateMapWithMapSketch(TileType[,] mapSketch)
@@ -188,7 +213,7 @@ public class MapController : NetworkBehaviour
     // Use this for initialization
     private void Start()
     {
-        mapInitialised = false;
+        updatingGenes = true;
 
         mapData = new byte[(int)mapDimensions.x, (int)mapDimensions.y, (int)mapDimensions.z];
         mapChunks = new List<MapChunkController>();
@@ -201,37 +226,34 @@ public class MapController : NetworkBehaviour
             GeneticAlgorithmHelpers.mapSketchWidth = (int)mapDimensions.x / 2;
             GeneticAlgorithmHelpers.mapSketchHeight = (int)mapDimensions.z / 2;
 
-            // Create the default chromosome
-            var defaultChromosome = new Chromosome();
-
+            // Create the default genes
             for (int i = 0; i < 45; ++i)
             {
-                defaultChromosome.Add(new Gene(new Tuple<int, int, int>(0, 0, 0)));
+                currentGenes.Add(new GeneTuple(0, 0, 0));
             }
 
             var horizontalCorridorLength = (int)mapDimensions.x / 4;
             var verticalCorridorLength = (int)mapDimensions.z / 4;
 
             // Add the default centre arena
-            defaultChromosome.Genes[0] = new Gene(new Tuple<int, int, int>(horizontalCorridorLength / 2, verticalCorridorLength / 2, horizontalCorridorLength));
+            currentGenes[0] = new GeneTuple(horizontalCorridorLength / 2, verticalCorridorLength / 2, horizontalCorridorLength);
 
             // Add the default corridors
-            defaultChromosome.Genes[15] = new Gene(new Tuple<int, int, int>(4, 4, horizontalCorridorLength / 2));
-            defaultChromosome.Genes[16] = new Gene(new Tuple<int, int, int>(4, 4, -verticalCorridorLength / 2));
-            defaultChromosome.Genes[17] = new Gene(new Tuple<int, int, int>(4, 4 + verticalCorridorLength / 2, horizontalCorridorLength / 2));
-            defaultChromosome.Genes[18] = new Gene(new Tuple<int, int, int>(4 + horizontalCorridorLength / 2, 4, -verticalCorridorLength / 2));
-            defaultChromosome.Genes[19] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5, horizontalCorridorLength / 2));
-            defaultChromosome.Genes[20] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
-            defaultChromosome.Genes[21] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, horizontalCorridorLength / 2));
-            defaultChromosome.Genes[22] = new Gene(new Tuple<int, int, int>(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2));
+            currentGenes[15] = new GeneTuple(4, 4, horizontalCorridorLength / 2);
+            currentGenes[16] = new GeneTuple(4, 4, -verticalCorridorLength / 2);
+            currentGenes[17] = new GeneTuple(4, 4 + verticalCorridorLength / 2, horizontalCorridorLength / 2);
+            currentGenes[18] = new GeneTuple(4 + horizontalCorridorLength / 2, 4, -verticalCorridorLength / 2);
+            currentGenes[19] = new GeneTuple(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5, horizontalCorridorLength / 2);
+            currentGenes[20] = new GeneTuple(((int)mapDimensions.x / 2) - 5, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2);
+            currentGenes[21] = new GeneTuple(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, horizontalCorridorLength / 2);
+            currentGenes[22] = new GeneTuple(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2);
 
             // Add the default capture point
-            defaultChromosome.Genes[44] = new Gene(new Tuple<int, int, int>((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2));
+            currentGenes[44] = new GeneTuple((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2);
+            updatingGenes = false;
 
-            currentMapChromosome = defaultChromosome;
-
-            GenerateMesh();
-            GenerateWorld();
+            currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
+            mapUpdateNeeded = true;
         }
     }
 
@@ -239,11 +261,20 @@ public class MapController : NetworkBehaviour
     {
         if (isServer && mapUpdateNeeded)
         {
-            // serialise the new chromosome
-            var serialisedMapChromosome = JsonConvert.SerializeObject(currentMapChromosome.Genes.Select((gene) => (Tuple<int, int, int>)gene.ObjectValue));
+            // Update the current gene list for network synchronisation
+            for (int i = 0; i < currentMapChromosome.Genes.Count; ++i)
+            {
+                var geneValue = (GeneTuple)currentMapChromosome.Genes[i].ObjectValue;
 
-            RpcUpdateMap(serialisedMapChromosome);
+                if (currentGenes[i] != geneValue)
+                {
+                    currentGenes[i] = geneValue;
+                }
+            }
+
             mapUpdateNeeded = false;
+
+            Invoke("GenerateWorld", 15);
         }
     }
 
@@ -286,13 +317,6 @@ public class MapController : NetworkBehaviour
         }
     }
 
-    private void OnDimensionsChanged(Vector3 newDimensions)
-    {
-        Debug.Log("Map dimensions changed");
-        mapChunks.Clear();
-        InstantiateChunks();
-    }
-
     private void GenerateWorld()
     {
         generationInProgress = true;
@@ -333,18 +357,30 @@ public class MapController : NetworkBehaviour
         geneticAlgorithm.RunAsync(GeneticAlgorithmHelpers.Terminate);
     }
 
-    [ClientRpc]
-    private void RpcUpdateMap(string newSerialisedChromosome)
-    {
-        var genes = JsonConvert.DeserializeObject<List<Tuple<int, int, int>>>(newSerialisedChromosome);
+    #region Callbacks
 
-        currentMapChromosome = new Chromosome();
-        foreach (var gene in genes)
-        {
-            currentMapChromosome.Genes.Add(new Gene(gene));
-        }
-        Debug.Log("Updated current chromosome");
-        UpdateMapWithMapSketch(MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2));
-        Debug.Log("Updated map");
+    private void OnDimensionsChanged(Vector3 newDimensions)
+    {
+        Debug.Log("Map dimensions changed");
+        mapChunks.Clear();
+        InstantiateChunks();
     }
+
+    private void OnUpdatingGenesChanged(bool newValue)
+    {
+        if (newValue == false)
+        {
+            UpdateMapWithCurrentGenes();
+        }
+    }
+
+    private void OnCurrentGenesUpdated(SyncListStruct<GeneTuple>.Operation operation, int index)
+    {
+        if (!updatingGenes)
+        {
+            UpdateMapWithCurrentGenes();
+        }
+    }
+
+    #endregion
 }

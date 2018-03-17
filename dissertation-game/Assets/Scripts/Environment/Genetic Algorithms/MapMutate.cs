@@ -1,8 +1,7 @@
-﻿using System;
-
-using GAF;
+﻿using GAF;
 using GAF.Operators;
-using UnityEngine;
+
+using Assets.Scripts.Environment.Structs;
 
 namespace Assets.Scripts.Environment.Genetic_Algorithms
 {
@@ -36,7 +35,7 @@ namespace Assets.Scripts.Environment.Genetic_Algorithms
                 ? rand.Next(0, mapWidth - newX)     // Horizontal
                 : rand.Next(-mapHeight + newY, 1);  // Vertical
 
-            gene.ObjectValue = new Tuple<int, int, int>(newX, newY, newZ);
+            gene.ObjectValue = new GeneTuple(newX, newY, newZ);
         }
     }
 }
