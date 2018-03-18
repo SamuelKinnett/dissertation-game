@@ -1,15 +1,17 @@
+using System.Collections;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Types;
 using UnityEngine.Networking.Match;
-using System.Collections;
-
+using Assets.Scripts.Player.Enums;
 
 namespace Prototype.NetworkLobby
 {
-    public class LobbyManager : NetworkLobbyManager 
+    public class LobbyManager : NetworkLobbyManager
     {
         static short MsgKicked = MsgType.Highest + 1;
 
@@ -48,7 +50,7 @@ namespace Prototype.NetworkLobby
         public bool _isMatchmaking = false;
 
         protected bool _disconnectServer = false;
-        
+
         protected ulong _currentMatchID;
 
         protected LobbyHook _lobbyHooks;
@@ -161,7 +163,7 @@ namespace Prototype.NetworkLobby
         public void GoBackButton()
         {
             backDelegate();
-			topPanel.isInGame = false;
+            topPanel.isInGame = false;
         }
 
         // ----------------- Server management
@@ -180,20 +182,20 @@ namespace Prototype.NetworkLobby
         {
             ChangeTo(mainMenuPanel);
         }
-                 
+
         public void StopHostClbk()
         {
             if (_isMatchmaking)
             {
-				matchMaker.DestroyMatch((NetworkID)_currentMatchID, 0, OnDestroyMatch);
-				_disconnectServer = true;
+                matchMaker.DestroyMatch((NetworkID)_currentMatchID, 0, OnDestroyMatch);
+                _disconnectServer = true;
             }
             else
             {
                 StopHost();
             }
 
-            
+
             ChangeTo(mainMenuPanel);
         }
 
@@ -241,16 +243,16 @@ namespace Prototype.NetworkLobby
             SetServerInfo("Hosting", networkAddress);
         }
 
-		public override void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
-		{
-			base.OnMatchCreate(success, extendedInfo, matchInfo);
+        public override void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
+        {
+            base.OnMatchCreate(success, extendedInfo, matchInfo);
             _currentMatchID = (System.UInt64)matchInfo.networkId;
-		}
+        }
 
-		public override void OnDestroyMatch(bool success, string extendedInfo)
-		{
-			base.OnDestroyMatch(success, extendedInfo);
-			if (_disconnectServer)
+        public override void OnDestroyMatch(bool success, string extendedInfo)
+        {
+            base.OnDestroyMatch(success, extendedInfo);
+            if (_disconnectServer)
             {
                 StopMatchMaker();
                 StopHost();
@@ -339,15 +341,74 @@ namespace Prototype.NetworkLobby
 
         public override void OnLobbyServerPlayersReady()
         {
-			bool allready = true;
-			for(int i = 0; i < lobbySlots.Length; ++i)
-			{
-				if(lobbySlots[i] != null)
-					allready &= lobbySlots[i].readyToBegin;
-			}
+            bool allready = true;
+            for (int i = 0; i < lobbySlots.Length; ++i)
+            {
+                if (lobbySlots[i] != null)
+                    allready &= lobbySlots[i].readyToBegin;
+            }
 
-			if(allready)
-				StartCoroutine(ServerCountdownCoroutine());
+            if (allready)
+            {
+                ResolveTeams();
+                StartCoroutine(ServerCountdownCoroutine());
+            }
+        }
+
+        public void ResolveTeams()
+        {
+            int redCount = 0;
+            int blueCount = 0;
+            List<int> unplacedIndices = new List<int>();
+
+            // Iterate through the current players and find the number on each
+            // team and the indices of unplaced (random) players.
+            for (int i = 0; i < lobbySlots.Length; ++i)
+            {
+                if (lobbySlots[i] != null)
+                {
+                    switch ((lobbySlots[i] as LobbyPlayer).playerTeam)
+                    {
+                        case Team.Random:
+                            unplacedIndices.Add(i);
+                            break;
+
+                        case Team.Red:
+                            ++redCount;
+                            break;
+
+                        case Team.Blue:
+                            ++blueCount;
+                            break;
+                    }
+                }
+            }
+
+            // Calculate how many red or blue players are needed to have a 50
+            // 50 split.
+            int remainingRed = Mathf.Abs(lobbySlots.Length / 2 - redCount);
+            int remainingBlue = Mathf.Abs(lobbySlots.Length / 2 - blueCount);
+
+            // Place the random players into teams
+            foreach (var unplacedIndex in unplacedIndices)
+            {
+                var newTeam = remainingRed > 0
+                    ? remainingBlue > 0
+                        ? (Team)Random.Range((int)Team.Red, (int)Team.Blue)
+                        : Team.Red
+                    : Team.Blue;
+
+                if (newTeam == Team.Red)
+                {
+                    --remainingRed;
+                }
+                else
+                {
+                    --remainingBlue;
+                }
+
+                (lobbySlots[unplacedIndex] as LobbyPlayer).playerTeam = newTeam;
+            }
         }
 
         public IEnumerator ServerCountdownCoroutine()
