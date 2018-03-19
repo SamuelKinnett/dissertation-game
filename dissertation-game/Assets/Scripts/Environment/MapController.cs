@@ -8,6 +8,7 @@ using Assets.Scripts.Environment.Enums;
 using Assets.Scripts.Environment.Genetic_Algorithms;
 using Assets.Scripts.Environment.Helpers;
 using Assets.Scripts.Environment.Structs;
+using Assets.Scripts.Player.Enums;
 
 using GAF;
 using GAF.Operators;
@@ -44,6 +45,14 @@ public class MapController : NetworkBehaviour
     private static List<MapChunkController> mapChunks;
 
     private static int wallHeight = 4;
+
+    private bool chunksInitialised;
+
+    // Spawning related variables
+    private List<Vector3> redTeamSpawnPositions;
+    private List<Vector3> blueTeamSpawnPositions;
+    private int currentRedTeamSpawnIndex;
+    private int currentBlueTeamSpawnIndex;
 
     // GA related variables
     static Chromosome currentMapChromosome;
@@ -127,19 +136,84 @@ public class MapController : NetworkBehaviour
         SetBlock(tempX + 1, tempY + 1, tempZ + 1, block, false);
     }
 
+    public Vector3 GetSpawnPositionForTeam(Team team)
+    {
+        switch (team)
+        {
+            case Team.Red:
+                if (currentRedTeamSpawnIndex < redTeamSpawnPositions.Count)
+                {
+                    ++currentRedTeamSpawnIndex;
+                }
+                else
+                {
+                    currentRedTeamSpawnIndex = 0;
+                }
+                return redTeamSpawnPositions[currentRedTeamSpawnIndex];
+
+            case Team.Blue:
+                if (currentBlueTeamSpawnIndex < blueTeamSpawnPositions.Count)
+                {
+                    ++currentBlueTeamSpawnIndex;
+                }
+                else
+                {
+                    currentBlueTeamSpawnIndex = 0;
+                }
+                return blueTeamSpawnPositions[currentBlueTeamSpawnIndex];
+
+            case Team.Random:
+            default:
+                // We should never reach this, but just in case return a
+                // default vector. A future improvement could be to allow for
+                // deathmatch gamemodes with random spawns.
+                return Vector3.zero;
+
+        }
+    }
+
+    public bool GetHasSpawnPositions(Team team)
+    {
+        switch (team)
+        {
+            case Team.Red:
+                return redTeamSpawnPositions.Count > 0;
+
+            case Team.Blue:
+                return blueTeamSpawnPositions.Count > 0;
+
+            case Team.Random:
+            default:
+                return false;
+        }
+    }
+
     private void UpdateMapWithCurrentGenes()
     {
-        currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
-        Debug.Log("Updated current chromosome");
+        // if the map hasn't yet been instantiated due to a race ocndition.
+        // delay this method.
+        if (!chunksInitialised)
+        {
+            Debug.Log("Delaying map update...");
+            Invoke("UpdateMapWithCurrentGenes", 1);
+        }
+        else
+        {
+            currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
+            Debug.Log("Updated current chromosome");
 
-        UpdateMapWithMapSketch(MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2));
-        Debug.Log("Updated map");
+            UpdateMapWithMapSketch(MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2));
+            Debug.Log("Updated map");
+        }
     }
 
     public void UpdateMapWithMapSketch(TileType[,] mapSketch)
     {
         var mapSketchWidth = (int)mapDimensions.x / 2;
         var mapSketchHeight = (int)mapDimensions.z / 2;
+
+        var newRedTeamSpawnPositions = new List<Vector3>();
+        var newBlueTeamSpawnPositions = new List<Vector3>();
 
         for (int curX = 0; curX < mapSketchWidth; ++curX)
         {
@@ -168,7 +242,7 @@ public class MapController : NetworkBehaviour
                         {
                             SetLargeBlock(curX, i, curY, 0);
                         }
-                        // TODO: Set spawn point here
+                        newRedTeamSpawnPositions.Add(new Vector3(curX * 2, 3, curY * 2));
                         break;
 
                     case TileType.Team2Spawn:
@@ -177,7 +251,7 @@ public class MapController : NetworkBehaviour
                         {
                             SetLargeBlock(curX, i, curY, 0);
                         }
-                        // TODO: Set spawn point here
+                        newBlueTeamSpawnPositions.Add(new Vector3(curX * 2, 3, curY * 2));
                         break;
 
                     case TileType.Barrier:
@@ -207,6 +281,9 @@ public class MapController : NetworkBehaviour
             }
         }
 
+        redTeamSpawnPositions = newRedTeamSpawnPositions;
+        blueTeamSpawnPositions = newBlueTeamSpawnPositions;
+
         GenerateMesh();
     }
 
@@ -214,10 +291,14 @@ public class MapController : NetworkBehaviour
     private void Start()
     {
         updatingGenes = true;
+        chunksInitialised = false;
 
         mapData = new byte[(int)mapDimensions.x, (int)mapDimensions.y, (int)mapDimensions.z];
         mapChunks = new List<MapChunkController>();
         InstantiateChunks();
+
+        redTeamSpawnPositions = new List<Vector3>();
+        blueTeamSpawnPositions = new List<Vector3>();
 
         mapUpdateNeeded = false;
 
@@ -262,6 +343,8 @@ public class MapController : NetworkBehaviour
         if (isServer && mapUpdateNeeded)
         {
             // Update the current gene list for network synchronisation
+            updatingGenes = true;
+
             for (int i = 0; i < currentMapChromosome.Genes.Count; ++i)
             {
                 var geneValue = (GeneTuple)currentMapChromosome.Genes[i].ObjectValue;
@@ -272,6 +355,7 @@ public class MapController : NetworkBehaviour
                 }
             }
 
+            updatingGenes = false;
             mapUpdateNeeded = false;
 
             Invoke("GenerateWorld", 15);
@@ -306,6 +390,7 @@ public class MapController : NetworkBehaviour
             }
         }
 
+        chunksInitialised = true;
         Debug.Log("Chunks Instantiated");
     }
 
