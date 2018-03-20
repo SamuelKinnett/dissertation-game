@@ -46,89 +46,51 @@ namespace Assets.Scripts.Environment.Helpers
                         }
                     }
                 }
-                else if (currentGeneIndex < 40)
+                else if (currentGeneIndex < 30)
                 {
-                    // This gene is a corridor or a barrier. Both are encoded in a
-                    // similar manner and so we'll consider them at the same time.
+                    // This gene is a corridor
                     int corridorX = geneTuple.X;
                     int corridorY = geneTuple.Y;
                     int corridorLength = geneTuple.Z;
 
                     if (corridorLength > 1)
                     {
-                        // Horizontal corridor/barrier
+                        // Horizontal corridor
                         for (int curX = corridorX; curX < corridorX + corridorLength; ++curX)
                         {
-                            if (currentGeneIndex < 30)
+                            // This is a corridor
+                            // All corridors have a fixed width of three tiles
+                            for (int i = -1; i < 2; ++i)
                             {
-                                // This is a corridor
-                                // All corridors have a fixed width of three tiles
-                                for (int i = -1; i < 2; ++i)
-                                {
-                                    if (curX >= 0 &&
-                                        corridorY + i >= 0 &&
-                                        curX < mapSketchWidth &&
-                                        corridorY + i < mapSketchHeight)
-                                    {
-                                        mapSketch[curX, corridorY + i] = TileType.Passable;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                // This is a barrier
-                                // All barriers are only one tile thick
                                 if (curX >= 0 &&
-                                    corridorY >= 0 &&
+                                    corridorY + i >= 0 &&
                                     curX < mapSketchWidth &&
-                                    corridorY < mapSketchHeight)
+                                    corridorY + i < mapSketchHeight)
                                 {
-                                    mapSketch[curX, corridorY] = TileType.Barrier;
+                                    mapSketch[curX, corridorY + i] = TileType.Passable;
                                 }
                             }
                         }
                     }
                     else
                     {
-                        // Vertical corridor/barrier
+                        // Vertical corridor
                         for (int curY = corridorY; curY < corridorY - corridorLength; ++curY)
                         {
-                            if (currentGeneIndex < 30)
+                            // This is a corridor
+                            // All corridors have a fixed width of three tiles
+                            for (int i = -1; i < 2; ++i)
                             {
-                                // This is a corridor
-                                // All corridors have a fixed width of three tiles
-                                for (int i = -1; i < 2; ++i)
-                                {
-                                    if (curY >= 0 &&
-                                        corridorX + i >= 0 &&
-                                        curY < mapSketchHeight &&
-                                        corridorX + i < mapSketchWidth)
-                                    {
-                                        mapSketch[corridorX + i, curY] = TileType.Passable;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                // This is a barrier
-                                // All barriers are only one tile thick
                                 if (curY >= 0 &&
-                                    corridorX >= 0 &&
+                                    corridorX + i >= 0 &&
                                     curY < mapSketchHeight &&
-                                    corridorX < mapSketchWidth)
+                                    corridorX + i < mapSketchWidth)
                                 {
-                                    mapSketch[corridorX, curY] = TileType.Barrier;
+                                    mapSketch[corridorX + i, curY] = TileType.Passable;
                                 }
                             }
                         }
                     }
-                }
-                else if (currentGeneIndex < 44)
-                {
-                    var pickupX = geneTuple.X;
-                    var pickupY = geneTuple.Y;
-
-                    mapSketch[pickupX, pickupY] = TileType.HealthPickup;
                 }
                 else
                 {

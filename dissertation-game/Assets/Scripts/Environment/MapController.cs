@@ -308,7 +308,7 @@ public class MapController : NetworkBehaviour
             GeneticAlgorithmHelpers.mapSketchHeight = (int)mapDimensions.z / 2;
 
             // Create the default genes
-            for (int i = 0; i < 45; ++i)
+            for (int i = 0; i < 31; ++i)
             {
                 currentGenes.Add(new GeneTuple(0, 0, 0));
             }
@@ -330,7 +330,7 @@ public class MapController : NetworkBehaviour
             currentGenes[22] = new GeneTuple(((int)mapDimensions.x / 2) - 5 - horizontalCorridorLength / 2, ((int)mapDimensions.z / 2) - 5 - verticalCorridorLength / 2, -verticalCorridorLength / 2);
 
             // Add the default capture point
-            currentGenes[44] = new GeneTuple((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2);
+            currentGenes[30] = new GeneTuple((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2);
             updatingGenes = false;
 
             currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
@@ -358,7 +358,9 @@ public class MapController : NetworkBehaviour
             updatingGenes = false;
             mapUpdateNeeded = false;
 
-            Invoke("GenerateWorld", 15);
+            GenerateWorld();
+
+            // Invoke("GenerateWorld", 15);
         }
     }
 
