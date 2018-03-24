@@ -35,6 +35,9 @@ public class MapController : NetworkBehaviour
     // The map chunk prefab
     public GameObject mapChunkPrefab;
 
+    // The capture point prefab
+    public GameObject capturePointPrefab;
+
     // This SyncList stores the tuples that form the genotype
     private SyncListGeneTuple currentGenes = new SyncListGeneTuple();
 
@@ -47,6 +50,9 @@ public class MapController : NetworkBehaviour
     private static int wallHeight = 4;
 
     private bool chunksInitialised;
+
+    // Reference to the capture point once spawned in
+    private CapturePointController capturePoint;
 
     // Spawning related variables
     private List<Vector3> redTeamSpawnPositions;
@@ -281,6 +287,15 @@ public class MapController : NetworkBehaviour
             }
         }
 
+        // Update the capture point
+        var capturePointGene = currentGenes.Last();
+        capturePoint.UpdateCapturePoint(
+            new Vector3(
+                (capturePointGene.X + capturePointGene.Z / 2.0f) * 2,
+                10,
+                (capturePointGene.Y + capturePointGene.Z / 2.0f) * 2),
+            new Vector3(capturePointGene.Z * 2, 18, capturePointGene.Z * 2));
+
         redTeamSpawnPositions = newRedTeamSpawnPositions;
         blueTeamSpawnPositions = newBlueTeamSpawnPositions;
 
@@ -296,6 +311,8 @@ public class MapController : NetworkBehaviour
         mapData = new byte[(int)mapDimensions.x, (int)mapDimensions.y, (int)mapDimensions.z];
         mapChunks = new List<MapChunkController>();
         InstantiateChunks();
+
+        capturePoint = GameObject.Instantiate(capturePointPrefab).GetComponent<CapturePointController>();
 
         redTeamSpawnPositions = new List<Vector3>();
         blueTeamSpawnPositions = new List<Vector3>();

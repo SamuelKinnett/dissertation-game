@@ -14,10 +14,17 @@ public class ToggleEvent : UnityEvent<bool>
 
 public class Player : NetworkBehaviour
 {
-    [SyncVar(hook = "OnNameChanged")] public string PlayerName;
-    [SyncVar(hook = "OnTeamChanged")] public Team PlayerTeam;
+    [SyncVar(hook = "OnNameChanged")]
+    public string PlayerName;
+
+    [SyncVar(hook = "OnTeamChanged")]
+    public Team PlayerTeam;
+
+    [SyncVar(hook = "OnIsCapturingChanged")]
+    public bool IsCapturing;
 
     public MapController mapController;
+    public GameObject playerCapsule;
 
     [SerializeField] ToggleEvent onToggleShared;
     [SerializeField] ToggleEvent onToggleLocal;
@@ -29,12 +36,6 @@ public class Player : NetworkBehaviour
 
     private GameObject mainCamera;
     private bool initialised;
-
-    public override void OnStartLocalPlayer()
-    {
-        base.OnStartLocalPlayer();
-        gameObject.name = "LocalPlayer";
-    }
 
     /// <summary>
     /// Announce the winner and return to lobby
@@ -171,11 +172,29 @@ public class Player : NetworkBehaviour
     private void OnNameChanged(string value)
     {
         PlayerName = value;
-        // gameObject.name = PlayerName;
+        gameObject.name = PlayerName;
         playerNameText.text = PlayerName;
     }
 
     private void OnTeamChanged(Team newValue)
+    {
+        var newColour = Color.grey;
+
+        switch (newValue)
+        {
+            case Team.Red:
+                newColour = Color.red;
+                break;
+
+            case Team.Blue:
+                newColour = Color.blue;
+                break;
+        }
+
+        playerCapsule.GetComponent<Renderer>().material.color = newColour;
+    }
+
+    private void OnIsCapturingChanged(bool newValue)
     {
     }
 

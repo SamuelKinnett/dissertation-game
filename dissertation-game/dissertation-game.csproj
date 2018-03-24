@@ -375,6 +375,7 @@
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\TimedObjectDestructor.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointCircuit.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointProgressTracker.cs" />
+    <Compile Include="Assets\Scripts\Environment\CapturePointController.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\BlockType.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\PickupType.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\TileType.cs" />

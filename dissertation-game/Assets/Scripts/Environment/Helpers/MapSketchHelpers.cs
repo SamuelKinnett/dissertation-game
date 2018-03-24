@@ -137,7 +137,7 @@ namespace Assets.Scripts.Environment.Helpers
                 mapSketch[curX, 0] = TileType.Impassable;
                 mapSketch[curX, mapSketchHeight - 1] = TileType.Impassable;
             }
-            for (int curY = 1; curY < mapSketchHeight - 2; ++curY)
+            for (int curY = 1; curY < mapSketchHeight - 1; ++curY)
             {
                 mapSketch[0, curY] = TileType.Impassable;
                 mapSketch[mapSketchWidth - 1, curY] = TileType.Impassable;
