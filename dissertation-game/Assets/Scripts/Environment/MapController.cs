@@ -378,9 +378,13 @@ public class MapController : NetworkBehaviour
             updatingGenes = false;
             mapUpdateNeeded = false;
 
-            GenerateWorld();
+            if (!isClient)
+            {
+                // If this is a dedicated server, make sure to update the map
+                UpdateMapWithCurrentGenes();
+            }
 
-            // Invoke("GenerateWorld", 15);
+            Invoke("GenerateWorld", 15);
         }
     }
 
