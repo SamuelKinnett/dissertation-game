@@ -55,7 +55,7 @@ public class PlayerHealth : NetworkBehaviour
 	{
 		// Add any death effects here
 		if (isLocalPlayer) {
-			PlayerCanvasController.playerCanvasController.FlashDamageEffect();
+			PlayerCanvasController.Instance.FlashDamageEffect();
 		}
 
 		if (died) {
@@ -72,7 +72,7 @@ public class PlayerHealth : NetworkBehaviour
 		health = newHealthValue;
 
 		if (isLocalPlayer) {
-			PlayerCanvasController.playerCanvasController.SetHealth(newHealthValue);
+			PlayerCanvasController.Instance.SetHealth(newHealthValue);
 		}
 	}
 }

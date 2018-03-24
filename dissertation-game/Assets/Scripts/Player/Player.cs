@@ -58,8 +58,8 @@ public class Player : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            PlayerCanvasController.playerCanvasController.WriteGameStatusText("You Died!");
-            PlayerCanvasController.playerCanvasController.PlayDeathAudio();
+            PlayerCanvasController.Instance.WriteGameStatusText("You Died!");
+            PlayerCanvasController.Instance.PlayDeathAudio();
         }
 
         DisablePlayer();
@@ -112,7 +112,7 @@ public class Player : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            PlayerCanvasController.playerCanvasController.Initialise();
+            PlayerCanvasController.Instance.Initialise();
             mainCamera.SetActive(false);
         }
 
@@ -135,7 +135,7 @@ public class Player : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            PlayerCanvasController.playerCanvasController.HideCrosshair(true);
+            PlayerCanvasController.Instance.HideCrosshair(true);
             mainCamera.SetActive(true);
         }
 
@@ -234,11 +234,11 @@ public class Player : NetworkBehaviour
         {
             if (netId == networkId)
             {
-                PlayerCanvasController.playerCanvasController.WriteGameStatusText("You Won!");
+                PlayerCanvasController.Instance.WriteGameStatusText("You Won!");
             }
             else
             {
-                PlayerCanvasController.playerCanvasController.WriteGameStatusText("Game Over!\n" + name + " Won.");
+                PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\n" + name + " Won.");
             }
         }
     }

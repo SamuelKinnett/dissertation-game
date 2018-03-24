@@ -96,7 +96,7 @@ public class PlayerShooting : NetworkBehaviour
 		score = newScore;
 
 		if (isLocalPlayer) {
-			PlayerCanvasController.playerCanvasController.SetScore(newScore);
+			PlayerCanvasController.Instance.SetScore(newScore);
 		}
 	}
 }

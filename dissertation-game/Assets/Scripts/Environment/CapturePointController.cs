@@ -211,11 +211,11 @@ public class CapturePointController : NetworkBehaviour
 
     private void OnRedTeamCapturePercentageChanged(float newValue)
     {
-
+        PlayerCanvasController.Instance.SetRedTeamPercentage(newValue);
     }
 
     private void OnBlueTeamCapturePercentageChanged(float newValue)
     {
-
+        PlayerCanvasController.Instance.SetBlueTeamPercentage(newValue);
     }
 }

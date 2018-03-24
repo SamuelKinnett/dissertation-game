@@ -3,31 +3,35 @@ using UnityEngine.UI;
 
 public class PlayerCanvasController : MonoBehaviour
 {
-	public static PlayerCanvasController playerCanvasController;
+	public static PlayerCanvasController Instance;
 
 	[Header("Component References")]
-	[SerializeField] Image crosshair;
-	[SerializeField] UIFader damageImage;
-	[SerializeField] Text gameStatusText;
-	[SerializeField] Text healthValue;
-	[SerializeField] Text scoreValue;
-	[SerializeField] Text logText;
-	[SerializeField] AudioSource deathAudio;
+	public Image Crosshair;
+	public UIFader DamageImage;
+	public Text GameStatusText;
+	public Text HealthValue;
+	public Text ScoreValue;
+	public Text LogText;
+    public Text RedTeamTimerText;
+    public Text BlueTeamTimeText;
+	public AudioSource DeathAudio;
+    public Slider RedTeamCapturePercentageSlider;
+    public Slider BlueTeamCapturePercentageSlider;
 
 	//Ensure there is only one PlayerCanvasController
 	void Awake()
 	{
-		if (playerCanvasController == null) {
-			playerCanvasController = this;
-		} else if (playerCanvasController != this) {
+		if (Instance == null) {
+			Instance = this;
+		} else if (Instance != this) {
 			Destroy(gameObject);
 		}
 	}
 
 	public void Initialise()
 	{
-		crosshair.enabled = true;
-		gameStatusText.text = "";
+		Crosshair.enabled = true;
+		GameStatusText.text = "";
 	}
 
 	/// <summary>
@@ -36,7 +40,7 @@ public class PlayerCanvasController : MonoBehaviour
 	/// <param name="setHidden">If set to <c>true</c> then hide the crosshair.</param>
 	public void HideCrosshair(bool setHidden)
 	{
-		crosshair.enabled = !setHidden;
+		Crosshair.enabled = !setHidden;
 	}
 
 	/// <summary>
@@ -44,7 +48,7 @@ public class PlayerCanvasController : MonoBehaviour
 	/// </summary>
 	public void FlashDamageEffect()
 	{
-		damageImage.Flash();
+		DamageImage.Flash();
 	}
 
 	/// <summary>
@@ -52,8 +56,8 @@ public class PlayerCanvasController : MonoBehaviour
 	/// </summary>
 	public void PlayDeathAudio()
 	{
-		if (!deathAudio.isPlaying) {
-			deathAudio.Play();
+		if (!DeathAudio.isPlaying) {
+			DeathAudio.Play();
 		}
 	}
 
@@ -63,7 +67,7 @@ public class PlayerCanvasController : MonoBehaviour
 	/// <param name="amount">The new score value.</param>
 	public void SetScore(int amount)
 	{
-		scoreValue.text = amount.ToString();
+		ScoreValue.text = amount.ToString();
 	}
 
 	/// <summary>
@@ -72,8 +76,18 @@ public class PlayerCanvasController : MonoBehaviour
 	/// <param name="amount">The new health value.</param>
 	public void SetHealth(int amount)
 	{
-		healthValue.text = amount.ToString();
+		HealthValue.text = amount.ToString();
 	}
+
+    public void SetRedTeamPercentage(float percentage)
+    {
+        RedTeamCapturePercentageSlider.value = percentage;
+    }
+
+    public void SetBlueTeamPercentage(float percentage)
+    {
+        BlueTeamCapturePercentageSlider.value = percentage;
+    }
 
 	/// <summary>
 	/// Writes the game status text.
@@ -81,7 +95,7 @@ public class PlayerCanvasController : MonoBehaviour
 	/// <param name="textToWrite">The text to write.</param>
 	public void WriteGameStatusText(string textToWrite)
 	{
-		gameStatusText.text = textToWrite;
+		GameStatusText.text = textToWrite;
 	}
 
 	/// <summary>
@@ -92,7 +106,7 @@ public class PlayerCanvasController : MonoBehaviour
 	public void WriteLogText(string textToWrite, float duration)
 	{
 		CancelInvoke();
-		logText.text = textToWrite;
+		LogText.text = textToWrite;
 		Invoke("ClearLogText", duration);
 	}
 
@@ -101,6 +115,6 @@ public class PlayerCanvasController : MonoBehaviour
 	/// </summary>
 	void ClearLogText()
 	{
-		logText.text = "";
+		LogText.text = "";
 	}
 }
