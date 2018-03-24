@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 65071752424799390}
   - component: {fileID: 23075996286323866}
   - component: {fileID: 114543083536026960}
+  - component: {fileID: 114390302318181106}
   m_Layer: 2
   m_Name: CapturePoint
   m_TagString: Untagged
@@ -92,10 +93,42 @@ BoxCollider:
   m_GameObject: {fileID: 1652452457736282}
   m_Material: {fileID: 0}
   m_IsTrigger: 1
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114390302318181106
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1652452457736282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SceneId:
+    m_Value: 0
+  m_AssetId:
+    i0: 147
+    i1: 114
+    i2: 141
+    i3: 133
+    i4: 149
+    i5: 111
+    i6: 35
+    i7: 180
+    i8: 235
+    i9: 74
+    i10: 203
+    i11: 226
+    i12: 104
+    i13: 187
+    i14: 134
+    i15: 157
+  m_ServerOnly: 0
+  m_LocalPlayerAuthority: 0
 --- !u!114 &114543083536026960
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -110,3 +143,4 @@ MonoBehaviour:
   CapturePercentagePerSecond: 0.25
   CapturePercentageRecoveryPerSecond: 0.05
   MaxBonus: 3
+  collider: {fileID: 65071752424799390}

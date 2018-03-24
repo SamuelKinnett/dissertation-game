@@ -312,7 +312,7 @@ public class MapController : NetworkBehaviour
         mapChunks = new List<MapChunkController>();
         InstantiateChunks();
 
-        capturePoint = GameObject.Instantiate(capturePointPrefab).GetComponent<CapturePointController>();
+        capturePoint = capturePointPrefab.GetComponent<CapturePointController>();
 
         redTeamSpawnPositions = new List<Vector3>();
         blueTeamSpawnPositions = new List<Vector3>();
@@ -349,6 +349,9 @@ public class MapController : NetworkBehaviour
             // Add the default capture point
             currentGenes[30] = new GeneTuple((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2);
             updatingGenes = false;
+
+            // TODO: Move this into a game manager class
+            GameTimeManager.Instance.SetGameTimerPaused(false);
 
             currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
             mapUpdateNeeded = true;

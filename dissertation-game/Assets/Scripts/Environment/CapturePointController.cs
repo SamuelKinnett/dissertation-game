@@ -17,6 +17,8 @@ public class CapturePointController : NetworkBehaviour
     // The maximum bonus gained from having more than one person capturing
     public float MaxBonus;
 
+    public BoxCollider collider;
+
     [SyncVar(hook = "OnCurrentControllingTeamChanged")]
     private Team currentControllingTeam;
 
@@ -80,113 +82,122 @@ public class CapturePointController : NetworkBehaviour
         }
     }
 
-    [Server]
     // Use this for initialization
     void Start()
     {
-        currentControllingTeam = Team.Random;
-        playersInCaptureZone = new List<Player>();
+        if (isServer)
+        {
+            currentControllingTeam = Team.Random;
+            playersInCaptureZone = new List<Player>();
+            collider.enabled = true;
+        }
     }
 
-    [Server]
     // Update is called once per frame
     void Update()
     {
-        // Capturing can only take place if the capture point is uncontested
-        if (redTeamCount > 0 && blueTeamCount == 0)
+        if (isServer)
         {
-            var captureChangeAmount = Mathf.Clamp(redTeamCount, 0, MaxBonus) * CapturePercentagePerSecond * Time.deltaTime;
-            if (blueTeamCapturePercentage > 0)
+            // Capturing can only take place if the capture point is uncontested
+            if (redTeamCount > 0 && blueTeamCount == 0)
             {
-                if (blueTeamCapturePercentage - captureChangeAmount > 0)
+                var captureChangeAmount = Mathf.Clamp(redTeamCount, 0, MaxBonus) * CapturePercentagePerSecond * Time.deltaTime;
+                if (blueTeamCapturePercentage > 0)
                 {
-                    blueTeamCapturePercentage -= captureChangeAmount;
+                    if (blueTeamCapturePercentage - captureChangeAmount > 0)
+                    {
+                        blueTeamCapturePercentage -= captureChangeAmount;
+                    }
+                    else
+                    {
+                        var remainder = captureChangeAmount - blueTeamCapturePercentage;
+                        blueTeamCapturePercentage = 0;
+                        redTeamCapturePercentage += remainder;
+
+                        // The capture point is now unowned
+                        currentControllingTeam = Team.Random;
+                        GameTimeManager.Instance.SetBlueTeamTimerPaused(true);
+                    }
                 }
                 else
                 {
-                    var remainder = captureChangeAmount - blueTeamCapturePercentage;
-                    blueTeamCapturePercentage = 0;
-                    redTeamCapturePercentage += remainder;
-
-                    // The capture point is now unowned
-                    currentControllingTeam = Team.Random;
-                }
-            }
-            else
-            {
-                if (redTeamCapturePercentage < 1.0f)
-                {
-                    redTeamCapturePercentage = Mathf.Clamp(redTeamCapturePercentage + captureChangeAmount, 0, 1);
-                    if (redTeamCapturePercentage == 1.0f)
+                    if (redTeamCapturePercentage < 1.0f)
                     {
-                        // The capture point is now owned by the red team
-                        currentControllingTeam = Team.Red;
+                        redTeamCapturePercentage = Mathf.Clamp(redTeamCapturePercentage + captureChangeAmount, 0, 1);
+                        if (redTeamCapturePercentage == 1.0f)
+                        {
+                            // The capture point is now owned by the red team
+                            currentControllingTeam = Team.Red;
+                            GameTimeManager.Instance.SetRedTeamTimerPaused(false);
+                        }
                     }
                 }
             }
-        }
-        else if (blueTeamCount > 0 && redTeamCount == 0)
-        {
-            var captureChangeAmount = Mathf.Clamp(blueTeamCount, 0, MaxBonus) * CapturePercentagePerSecond * Time.deltaTime;
-            if (redTeamCapturePercentage > 0)
+            else if (blueTeamCount > 0 && redTeamCount == 0)
             {
-                if (redTeamCapturePercentage - captureChangeAmount > 0)
-                {
-                    redTeamCapturePercentage -= captureChangeAmount;
-                }
-                else
-                {
-                    var remainder = captureChangeAmount - redTeamCapturePercentage;
-                    redTeamCapturePercentage = 0;
-                    blueTeamCapturePercentage += remainder;
-
-                    // The capture point is now unowned
-                    currentControllingTeam = Team.Random;
-                }
-            }
-            else
-            {
-                if (blueTeamCapturePercentage < 1.0f)
-                {
-                    blueTeamCapturePercentage = Mathf.Clamp(blueTeamCapturePercentage + captureChangeAmount, 0, 1);
-                    if (blueTeamCapturePercentage == 1)
-                    {
-                        // The capture point is now owned by the blue team
-                        currentControllingTeam = Team.Blue;
-                    }
-                }
-            }
-        }
-        else
-        {
-            // If the capture point is owned and no-one is capturing it, slowly restore it to 100% ownership
-            if (currentControllingTeam == Team.Red)
-            {
-                var percentageChange = CapturePercentageRecoveryPerSecond * Time.deltaTime;
-
-                if (redTeamCapturePercentage < 1.0f)
-                {
-                    redTeamCapturePercentage = Mathf.Clamp(redTeamCapturePercentage + percentageChange, 0, 1);
-                }
-            }
-            else if (currentControllingTeam == Team.Blue)
-            {
-                var percentageChange = CapturePercentageRecoveryPerSecond * Time.deltaTime;
-                if (blueTeamCapturePercentage < 1.0f)
-                {
-                    blueTeamCapturePercentage = Mathf.Clamp(blueTeamCapturePercentage + percentageChange, 0, 1);
-                }
-            }
-            else
-            {
-                var percentageChange = CapturePercentageRecoveryPerSecond * Time.deltaTime;
+                var captureChangeAmount = Mathf.Clamp(blueTeamCount, 0, MaxBonus) * CapturePercentagePerSecond * Time.deltaTime;
                 if (redTeamCapturePercentage > 0)
                 {
-                    redTeamCapturePercentage = Mathf.Clamp(redTeamCapturePercentage - percentageChange, 0, 1);
+                    if (redTeamCapturePercentage - captureChangeAmount > 0)
+                    {
+                        redTeamCapturePercentage -= captureChangeAmount;
+                    }
+                    else
+                    {
+                        var remainder = captureChangeAmount - redTeamCapturePercentage;
+                        redTeamCapturePercentage = 0;
+                        blueTeamCapturePercentage += remainder;
+
+                        // The capture point is now unowned
+                        currentControllingTeam = Team.Random;
+                        GameTimeManager.Instance.SetRedTeamTimerPaused(true);
+                    }
                 }
-                else if (blueTeamCapturePercentage > 0)
+                else
                 {
-                    blueTeamCapturePercentage = Mathf.Clamp(blueTeamCapturePercentage - percentageChange, 0, 1);
+                    if (blueTeamCapturePercentage < 1.0f)
+                    {
+                        blueTeamCapturePercentage = Mathf.Clamp(blueTeamCapturePercentage + captureChangeAmount, 0, 1);
+                        if (blueTeamCapturePercentage == 1)
+                        {
+                            // The capture point is now owned by the blue team
+                            currentControllingTeam = Team.Blue;
+                            GameTimeManager.Instance.SetBlueTeamTimerPaused(false);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // If the capture point is owned and no-one is capturing it, slowly restore it to 100% ownership
+                if (currentControllingTeam == Team.Red)
+                {
+                    var percentageChange = CapturePercentageRecoveryPerSecond * Time.deltaTime;
+
+                    if (redTeamCapturePercentage < 1.0f)
+                    {
+                        redTeamCapturePercentage = Mathf.Clamp(redTeamCapturePercentage + percentageChange, 0, 1);
+                    }
+                }
+                else if (currentControllingTeam == Team.Blue)
+                {
+                    var percentageChange = CapturePercentageRecoveryPerSecond * Time.deltaTime;
+                    if (blueTeamCapturePercentage < 1.0f)
+                    {
+                        blueTeamCapturePercentage = Mathf.Clamp(blueTeamCapturePercentage + percentageChange, 0, 1);
+                    }
+                }
+                else
+                {
+                    var percentageChange = CapturePercentageRecoveryPerSecond * Time.deltaTime;
+                    if (redTeamCapturePercentage > 0)
+                    {
+                        redTeamCapturePercentage = Mathf.Clamp(redTeamCapturePercentage - percentageChange, 0, 1);
+                    }
+                    else if (blueTeamCapturePercentage > 0)
+                    {
+                        blueTeamCapturePercentage = Mathf.Clamp(blueTeamCapturePercentage - percentageChange, 0, 1);
+                    }
                 }
             }
         }
@@ -206,7 +217,7 @@ public class CapturePointController : NetworkBehaviour
                 break;
         }
 
-        this.GetComponent<Renderer>().material.color = newColour;
+        GetComponent<Renderer>().material.color = newColour;
     }
 
     private void OnRedTeamCapturePercentageChanged(float newValue)
