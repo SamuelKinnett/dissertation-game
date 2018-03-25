@@ -20,7 +20,7 @@ MonoBehaviour:
   m_ShowMode: 4
   m_Title: 
   m_RootView: {fileID: 2}
-  m_MinSize: {x: 950, y: 300}
+  m_MinSize: {x: 950, y: 542}
   m_MaxSize: {x: 10000, y: 10000}
 --- !u!114 &2
 MonoBehaviour:
@@ -43,7 +43,7 @@ MonoBehaviour:
     y: 0
     width: 1680
     height: 967
-  m_MinSize: {x: 950, y: 300}
+  m_MinSize: {x: 950, y: 542}
   m_MaxSize: {x: 10000, y: 10000}
 --- !u!114 &3
 MonoBehaviour:
@@ -106,10 +106,10 @@ MonoBehaviour:
     y: 30
     width: 1680
     height: 917
-  m_MinSize: {x: 681, y: 492}
-  m_MaxSize: {x: 14002, y: 14042}
+  m_MinSize: {x: 683, y: 492}
+  m_MaxSize: {x: 14004, y: 14042}
   vertical: 0
-  controlID: 11
+  controlID: 34
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_MinSize: {x: 406, y: 492}
   m_MaxSize: {x: 10002, y: 14042}
   vertical: 1
-  controlID: 12
+  controlID: 35
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_MinSize: {x: 406, y: 221}
   m_MaxSize: {x: 8006, y: 4021}
   vertical: 0
-  controlID: 13
+  controlID: 36
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -255,8 +255,8 @@ MonoBehaviour:
     y: 0
     width: 345
     height: 917
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 277, y: 71}
+  m_MaxSize: {x: 4002, y: 4021}
   m_ActualView: {fileID: 19}
   m_Panes:
   - {fileID: 19}
@@ -370,7 +370,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: ce16f0ff4417f0ffa218f0ff1c1af0ff241af0ff3e64f0ff246cf0ffa46cf0ff026ef0ff7c6ff0ff846ff0ffe695f0ff6896f0ffca97f0ff4899f0ff5499f0ff6a9cf0ff5eaef0ff04dbf0ff6ce1f0ff26e2f0ff86e3f0fff2e4f0fffae4f0ff9c0af1ff7a1cf1fffe1cf1ff5e1ef1ffca1ff1ffd21ff1ff202ef1ff3634f1ffba34f1ff1a36f1ff8637f1ff8e37f1ff0052f1ff7a52f1ffda53f1ff4655f1ff4e55f1ffc074f1ff4475f1ffa476f1ff1078f1ff1878f1ff6496f1ffd09cf1ff5c9df1ffc09ef1ff30a0f1ff3ca0f1ff66b5f1ffa2b9f1ff24baf1ff84bbf1ff88bbf1fff0bdf1ff62e2f1ff3e3cf5ffaa40f5ffac40f5ff2205f6ffb651f9ffc251f9ffce51f9ff18c6f9ff06fbffff9efbffff00000000
+    m_ExpandedIDs: 9efbffff00000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -454,7 +454,7 @@ MonoBehaviour:
   m_Rotation:
     m_Target: {x: -0.14991647, y: -0.66198796, z: 0.13757654, w: -0.7213666}
     speed: 2
-    m_Value: {x: -0.14991647, y: -0.66198796, z: 0.13757654, w: -0.7213666}
+    m_Value: {x: 0.14991647, y: 0.66198796, z: -0.13757654, w: 0.7213666}
   m_Size:
     m_Target: 14.28942
     speed: 2
@@ -569,19 +569,19 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/Prefabs
+    - Assets
   m_ViewMode: 1
   m_StartGridSize: 96
   m_LastFolders:
-  - Assets/Prefabs
+  - Assets
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\kense\Documents\GitHub\dissertation-game\dissertation-game
   m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 227}
-    m_SelectedIDs: 062b0000
-    m_LastClickedID: 11014
-    m_ExpandedIDs: 000000003e28000046280000542800008a2900009e290000c2290000e8290000f8290000062a00003e2b000000ca9a3bffffff7f
+    scrollPos: {x: 0, y: 79}
+    m_SelectedIDs: 62280000
+    m_LastClickedID: 10338
+    m_ExpandedIDs: 00000000622800006a2800007a280000d2290000ee290000142a0000402a0000502a00005e2a00009e2b0000b62b000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -609,7 +609,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 000000003e28000046280000542800008a2900009e290000c2290000e8290000f8290000062a00003e2b0000
+    m_ExpandedIDs: 00000000622800006a2800007a280000d2290000ee290000142a0000402a0000502a00005e2a00009e2b0000b62b0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
