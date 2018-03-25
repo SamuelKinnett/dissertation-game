@@ -19,10 +19,18 @@ public class PlayerHealth : NetworkBehaviour
 	{
 		if (health > 0) {
 			health -= damage;
-			var died = health <= 0;
 
-			RpcTakeDamage(died);
-			return died;
+            if (health <= 0)
+            {
+                RpcTakeDamage(true);
+                player.Die();   // Make sure to kill the player object on the server
+                return true;
+            }
+            else
+            {
+                RpcTakeDamage(false);
+                return false;
+            }
 		}
 
 		// The instance is dead, but this damage didn't cause the death, so we return false.

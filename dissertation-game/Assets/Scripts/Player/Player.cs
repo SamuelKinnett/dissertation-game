@@ -159,7 +159,7 @@ public class Player : NetworkBehaviour
         if (isLocalPlayer)
         {
             transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam);
-            transform.rotation = Quaternion.identity;
+            transform.rotation = PlayerTeam == Team.Red ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
         }
 
         EnablePlayer();
