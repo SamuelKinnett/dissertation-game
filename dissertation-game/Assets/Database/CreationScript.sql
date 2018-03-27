@@ -7,11 +7,29 @@ DROP TABLE IF EXISTS Teams;
 DROP TABLE IF EXISTS Players;
 DROP TABLE IF EXISTS Maps;
 DROP TABLE IF EXISTS Games;
+DROP TABLE IF EXISTS GameTypes;
+DROP TABLE IF EXISTS Sessions;
+
+CREATE TABLE Sessions (
+    SessionId INTEGER PRIMARY KEY NOT NULL
+);
+
+CREATE TABLE GameTypes (
+    GameTypeId INTEGER PRIMARY KEY NOT NULL,
+    GameTypeDescription NCHAR(50) NOT NULL
+);
+
+INSERT INTO GameTypes VALUES (1, "Control");
+INSERT INTO GameTypes VALUES (2, "Procedural");
 
 CREATE TABLE Games (
     GameId INTEGER PRIMARY KEY NOT NULL,
+    SessionId INTEGER NOT NULL,
+    GameTypeId INTEGER NOT NULL,
     Date INTEGER NOT NULL,
-    Duration INTEGER NOT NULL 
+    Duration INTEGER NOT NULL,
+    FOREIGN KEY (SessionId) REFERENCES Sessions(SessionId),
+    FOREIGN KEY (GameTypeId) REFERENCES GameTypes(GameTypeId)
 );
 
 CREATE TABLE Maps (

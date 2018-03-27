@@ -278,6 +278,15 @@
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>C:/Program Files (x86)/Microsoft Visual Studio Tools for Unity/15.0/Editor/SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data">
+      <HintPath>Assets/packages/System.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>Assets/packages/EntityFramework.6.0.0/lib/net45/EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>Assets/packages/EntityFramework.6.0.0/lib/net45/EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="GAF">
       <HintPath>Assets/packages/GAF.2.3.1/lib/net40/GAF.dll</HintPath>
     </Reference>
@@ -286,6 +295,15 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Assets/packages/Newtonsoft.Json.11.0.1/lib/net45/Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite">
+      <HintPath>Assets/packages/System.Data.SQLite.Core.1.0.108.0/lib/net46/System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6">
+      <HintPath>Assets/packages/System.Data.SQLite.EF6.1.0.108.0/lib/net46/System.Data.SQLite.EF6.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq">
+      <HintPath>Assets/packages/System.Data.SQLite.Linq.1.0.108.0/lib/net46/System.Data.SQLite.Linq.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Advertisements">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.3/UnityEngine.Advertisements.dll</HintPath>
@@ -307,21 +325,6 @@
     </Reference>
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.10/UnityEngine.StandardEvents.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.Linq">
-      <HintPath>Assets/packages/System.Data.SQLite.Linq.1.0.108.0/lib/net46/System.Data.SQLite.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer">
-      <HintPath>Assets/packages/EntityFramework.6.0.0/lib/net45/EntityFramework.SqlServer.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.EF6">
-      <HintPath>Assets/packages/System.Data.SQLite.EF6.1.0.108.0/lib/net46/System.Data.SQLite.EF6.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite">
-      <HintPath>Assets/packages/System.Data.SQLite.Core.1.0.108.0/lib/net46/System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework">
-      <HintPath>Assets/packages/EntityFramework.6.0.0/lib/net45/EntityFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -390,6 +393,7 @@
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\TimedObjectDestructor.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointCircuit.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointProgressTracker.cs" />
+    <Compile Include="Assets\Scripts\Data\DatabaseManager.cs" />
     <Compile Include="Assets\Scripts\Environment\CapturePointController.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\BlockType.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\PickupType.cs" />
