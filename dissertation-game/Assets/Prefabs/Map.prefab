@@ -149,4 +149,5 @@ MonoBehaviour:
   chunkDepth: 16
   mapChunkPrefab: {fileID: 1658531532845656, guid: 3b2eabd8a5cb30945b87cd528b9115f6,
     type: 2}
-  capturePointPrefab: {fileID: 0}
+  capturePointPrefab: {fileID: 1652452457736282, guid: 93728d85956f23b4eb4acbe268bb869d,
+    type: 2}

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.Networking;
@@ -32,52 +33,76 @@ public class CapturePointController : NetworkBehaviour
     private int blueTeamCount;
     private List<Player> playersInCaptureZone;
 
+    private bool meshFlipped;
+
     public void UpdateCapturePoint(Vector3 newPosition, Vector3 newDimensions)
     {
         this.transform.position = newPosition;
         this.transform.localScale = newDimensions;
     }
 
-    [Server]
     public void OnTriggerEnter(Collider other)
     {
-        var player = other.GetComponent<Player>();
-
-        if (player != null && !playersInCaptureZone.Contains(player))
+        if (isServer)
         {
-            playersInCaptureZone.Add(player);
+            var player = other.GetComponent<Player>();
 
-            switch (player.PlayerTeam)
+            if (player != null && !playersInCaptureZone.Contains(player))
             {
-                case Team.Red:
-                    ++redTeamCount;
-                    break;
+                playersInCaptureZone.Add(player);
 
-                case Team.Blue:
-                    ++blueTeamCount;
-                    break;
+                switch (player.PlayerTeam)
+                {
+                    case Team.Red:
+                        ++redTeamCount;
+                        break;
+
+                    case Team.Blue:
+                        ++blueTeamCount;
+                        break;
+                }
+            }
+        }
+        else
+        {
+            var player = other.GetComponent<Player>();
+
+            if (player.isLocalPlayer && !meshFlipped)
+            {
+                FlipMesh();
             }
         }
     }
 
-    [Server]
     public void OnTriggerExit(Collider other)
     {
-        var player = other.GetComponent<Player>();
-
-        if (player != null && playersInCaptureZone.Contains(player))
+        if (isServer)
         {
-            playersInCaptureZone.Remove(player);
+            var player = other.GetComponent<Player>();
 
-            switch (player.PlayerTeam)
+            if (player != null && playersInCaptureZone.Contains(player))
             {
-                case Team.Red:
-                    --redTeamCount;
-                    break;
+                playersInCaptureZone.Remove(player);
 
-                case Team.Blue:
-                    --blueTeamCount;
-                    break;
+                switch (player.PlayerTeam)
+                {
+                    case Team.Red:
+                        --redTeamCount;
+                        break;
+
+                    case Team.Blue:
+                        --blueTeamCount;
+                        break;
+                }
+            }
+        }
+        else
+        {
+            var player = other.GetComponent<Player>();
+
+            if (player.isLocalPlayer && meshFlipped)
+            {
+                FlipMesh();
             }
         }
     }
@@ -89,7 +114,6 @@ public class CapturePointController : NetworkBehaviour
         {
             currentControllingTeam = Team.Random;
             playersInCaptureZone = new List<Player>();
-            collider.enabled = true;
         }
     }
 
@@ -201,6 +225,24 @@ public class CapturePointController : NetworkBehaviour
                 }
             }
         }
+    }
+
+    private void FlipMesh()
+    {
+        var meshFilter = GetComponent<MeshFilter>();
+
+        var triangles = meshFilter.mesh.triangles;
+
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            var tempIndex = triangles[i];
+            triangles[i] = triangles[i + 2];
+            triangles[i + 2] = tempIndex;
+        }
+
+        meshFilter.mesh.SetTriangles(triangles, 0);
+
+        meshFlipped = !meshFlipped;
     }
 
     private void OnCurrentControllingTeamChanged(Team newValue)
