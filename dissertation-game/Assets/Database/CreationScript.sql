@@ -19,8 +19,8 @@ CREATE TABLE GameTypes (
     GameTypeDescription NCHAR(50) NOT NULL
 );
 
-INSERT INTO GameTypes VALUES (1, "Control");
-INSERT INTO GameTypes VALUES (2, "Procedural");
+INSERT INTO GameTypes VALUES (0, "Control");
+INSERT INTO GameTypes VALUES (1, "Procedural");
 
 CREATE TABLE Games (
     GameId INTEGER PRIMARY KEY NOT NULL,
@@ -35,8 +35,8 @@ CREATE TABLE Games (
 CREATE TABLE Maps (
     MapId INTEGER PRIMARY KEY NOT NULL,
     GameId INTEGER NOT NULL,
-    TimeOffset INTEGER NOT NULL,
-    Genotype TEXT NOT NULL,
+    Date INTEGER NOT NULL,
+    Chromosome TEXT NOT NULL,
     FOREIGN KEY (GameId) REFERENCES Games (GameId)
 );
 
@@ -71,7 +71,7 @@ CREATE TABLE Captures (
     CaptureId INTEGER PRIMARY KEY NOT NULL,
     GameId INTEGER NOT NULL,
     TeamId INTEGER NOT NULL,
-    TimeOffset INTEGER NOT NULL,
+    Date INTEGER NOT NULL,
     FOREIGN KEY (GameId) REFERENCES Games (GameId),
     FOREIGN KEY (TeamId) REFERENCES Teams (TeamId)
 );
@@ -84,7 +84,7 @@ CREATE TABLE Shots (
     Direction TEXT NOT NULL,
     RecipientId INTEGER,
     RecipientPosition TEXT,
-    TimeOffset INTEGER NOT NULL,
+    Date INTEGER NOT NULL,
     FOREIGN KEY (GameId) REFERENCES Games (GameId),
     FOREIGN KEY (ShooterId) REFERENCES Players (PlayerId),
     FOREIGN KEY (RecipientId) REFERENCES Players (PlayerId)
