@@ -99,7 +99,7 @@ public class Player : NetworkBehaviour
                 if (mapController.GetHasSpawnPositions(PlayerTeam))
                 {
                     initialised = true;
-                    Respawn();
+                    Invoke("Respawn", mapController.previewTime);
                 }
             }
         }
@@ -241,5 +241,11 @@ public class Player : NetworkBehaviour
                 PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\n" + name + " Won.");
             }
         }
+    }
+
+    [ClientRpc]
+    private void RpcWarpToPosition(Vector3 newPosition)
+    {
+        transform.position = newPosition;
     }
 }

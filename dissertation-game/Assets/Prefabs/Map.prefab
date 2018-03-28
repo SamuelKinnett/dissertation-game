@@ -144,6 +144,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapDimensions: {x: 96, y: 32, z: 96}
   updatingGenes: 0
+  previewTime: 5
   chunkWidth: 16
   chunkHeight: 16
   chunkDepth: 16

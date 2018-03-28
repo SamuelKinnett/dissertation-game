@@ -27,6 +27,10 @@ public class MapController : NetworkBehaviour
     [SyncVar(hook = "OnUpdatingGenesChanged")]
     public bool updatingGenes;
 
+    // How long to preview the map changes before they are made concrete
+    [SyncVar]
+    public float previewTime;
+
     // The X, Y and Z dimensions of the chunks
     public int chunkWidth;
     public int chunkHeight;
@@ -41,8 +45,9 @@ public class MapController : NetworkBehaviour
     // This SyncList stores the tuples that form the genotype
     private SyncListGeneTuple currentGenes = new SyncListGeneTuple();
 
-    // This array stores the data of the map geometry, with each element representing one 'block'.
-    // A 0 represents empty space, numbers above this represent different block types.
+    // These arrays store the data of the map geometry, with each element 
+    // representing one 'block'.A 0 represents empty space, numbers above this
+    // represent different block types.
     private static byte[,,] mapData;
 
     private static List<MapChunkController> mapChunks;
@@ -294,7 +299,7 @@ public class MapController : NetworkBehaviour
                 (capturePointGene.X + capturePointGene.Z / 2.0f) * 2,
                 10,
                 (capturePointGene.Y + capturePointGene.Z / 2.0f) * 2),
-            new Vector3(capturePointGene.Z * 2, 18, capturePointGene.Z * 2));
+            new Vector3(capturePointGene.Z * 2, 20, capturePointGene.Z * 2));
 
         redTeamSpawnPositions = newRedTeamSpawnPositions;
         blueTeamSpawnPositions = newBlueTeamSpawnPositions;
@@ -424,7 +429,7 @@ public class MapController : NetworkBehaviour
     {
         foreach (var currentChunk in mapChunks)
         {
-            currentChunk.GenerateMesh();
+            currentChunk.GenerateMesh(previewTime);
         }
     }
 

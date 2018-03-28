@@ -75,7 +75,9 @@ namespace Assets.Scripts.Environment.Helpers
             if (!capturePointReachableForTeamOne || !capturePointReachableForTeamTwo)
                 return 0;
 
-            var testFitness = (mapReachableForTeamOne.Cast<bool>().Count((tile) => tile) + mapReachableForTeamTwo.Cast<bool>().Count((tile) => tile)) / (float)(mapSketchWidth * mapSketchHeight * 2);
+            //var testFitness = (mapReachableForTeamOne.Cast<bool>().Count((tile) => tile) + mapReachableForTeamTwo.Cast<bool>().Count((tile) => tile)) / (float)(mapSketchWidth * mapSketchHeight * 2);
+            var testRand = new System.Random();
+            var testFitness = testRand.NextDouble();
 
             return testFitness;
         }

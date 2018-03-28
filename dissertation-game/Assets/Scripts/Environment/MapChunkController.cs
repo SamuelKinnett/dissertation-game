@@ -5,13 +5,23 @@ using UnityEngine.Networking;
 
 public class MapChunkController : NetworkBehaviour
 {
-	[SerializeField] MeshFilter meshFilter;
-	[SerializeField] MeshCollider meshCollider;
+	public MeshFilter MeshFilter;
+    public MeshFilter MeshFilterPreview;
+	public MeshCollider MeshCollider;
+    public MeshRenderer MeshRendererPreview;
 
 	public bool ChunkUpdated;
+    public bool ChunkPreviewUpdated;
     public Vector2 textureMapDimensions;
 
 	private Mesh mesh;
+    private Mesh previewMesh;
+
+    private bool previewMeshFlipped;
+
+    private float timeUntilRegenerateMesh;
+    // When this timer reaches zero, re-generate the actual mesh and clear the preview mesh
+    private float currentTimeUntilRegenerateMesh;
 
 	private List<Vector3> newVertices;
 	private List<int> newTriangles;
@@ -30,7 +40,9 @@ public class MapChunkController : NetworkBehaviour
 	private int chunkHeight;
 	private int chunkLength;
 
-	private bool initialised;
+    private byte[,,] oldMapData;
+
+    private bool initialised;
 	private MapController mapController;
 
 	public void Initialise(
@@ -53,7 +65,7 @@ public class MapChunkController : NetworkBehaviour
 		initialised = true;
 	}
 
-	public void GenerateMesh()
+	public void GenerateMesh(float previewTime, bool isPreview = true)
 	{
 		for (int x = chunkX; x < chunkX + chunkWidth; ++x) {
 			for (int y = chunkY; y < chunkY + chunkHeight; ++y) {
@@ -93,7 +105,9 @@ public class MapChunkController : NetworkBehaviour
 			}
 		}
 
-		UpdateMesh();
+		UpdateMesh(isPreview);
+        timeUntilRegenerateMesh = previewTime;
+        currentTimeUntilRegenerateMesh = previewTime;
 	}
 
 	/// <summary>
@@ -115,38 +129,72 @@ public class MapChunkController : NetworkBehaviour
 		return !positionOutsideOfChunk;
 	}
 
-	private void Update()
+    private void Update()
 	{
 		if (ChunkUpdated) {
-			GenerateMesh();
+			GenerateMesh(0.0f, false);
             ChunkUpdated = false;
 		}
+
+        if (currentTimeUntilRegenerateMesh > 0)
+        {
+            currentTimeUntilRegenerateMesh = currentTimeUntilRegenerateMesh - Time.deltaTime;
+
+            MeshRendererPreview.material.color = new Color(1, 1, 1, 1 - (currentTimeUntilRegenerateMesh / timeUntilRegenerateMesh));
+
+            if (currentTimeUntilRegenerateMesh <= 0)
+            {
+                currentTimeUntilRegenerateMesh = 0;
+                GenerateMesh(0.0f, false);
+            }
+        }
 	}
 
 	private void Awake()
 	{
 		initialised = false;
 
-		mesh = meshFilter.mesh;
+		mesh = MeshFilter.mesh;
+        previewMesh = MeshFilterPreview.mesh;
+
+        oldMapData = new byte[chunkWidth, chunkHeight, chunkLength];
 
 		newVertices = new List<Vector3>();
 		newTriangles = new List<int>();
 		newUV = new List<Vector2>();
 	}
 
-	private void UpdateMesh()
+	private void UpdateMesh(bool isPreview)
 	{
-		// Clear the mesh and set the vertices, UVs and triangles
-		mesh.Clear();
-		mesh.SetVertices(newVertices);
-		mesh.SetUVs(0, newUV);
-		mesh.SetTriangles(newTriangles, 0);
+        if (isPreview)
+        {
+            // Clear the preview mesh and set the vertices, UVs and triangles
+            previewMesh.Clear();
+            previewMesh.SetVertices(newVertices);
+            previewMesh.SetUVs(0, newUV);
+            previewMesh.SetTriangles(newTriangles, 0);
 
-		// Recalculate normals
-		mesh.RecalculateNormals();
+            // Recalculate normals
+            previewMesh.RecalculateNormals();
+        }
+        else
+        {
+            // Clear the mesh and set the vertices, UVs and triangles
+            mesh.Clear();
+            mesh.SetVertices(newVertices);
+            mesh.SetUVs(0, newUV);
+            mesh.SetTriangles(newTriangles, 0);
 
-		// Create the collision mesh
-		meshCollider.sharedMesh = mesh;
+            // Recalculate normals
+            mesh.RecalculateNormals();
+
+            // Create the collision mesh
+            MeshCollider.sharedMesh = mesh;
+
+            // Clear the preview mesh
+            previewMesh.Clear();
+            previewMeshFlipped = false;
+        }
 
 		// Clear the buffers
 		newVertices.Clear();
