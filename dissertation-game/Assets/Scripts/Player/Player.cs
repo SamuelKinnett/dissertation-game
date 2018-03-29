@@ -23,6 +23,9 @@ public class Player : NetworkBehaviour
     [SyncVar(hook = "OnIsCapturingChanged")]
     public bool IsCapturing;
 
+    [SyncVar]
+    public int PlayerId;
+
     public MapController mapController;
     public GameObject playerCapsule;
 

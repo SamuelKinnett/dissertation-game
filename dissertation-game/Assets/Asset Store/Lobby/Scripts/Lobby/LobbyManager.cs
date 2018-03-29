@@ -17,10 +17,12 @@ namespace Prototype.NetworkLobby
 
         static public LobbyManager s_Singleton;
 
-
         [Header("Unity UI Lobby")]
         [Tooltip("Time in second between all players ready & match start")]
         public float prematchCountdown = 5.0f;
+
+        [Tooltip("A reference to the DatabaseManager prefab")]
+        public GameObject DatabaseManagerPrefab;
 
         [Space]
         [Header("UI Reference")]
@@ -39,6 +41,8 @@ namespace Prototype.NetworkLobby
 
         public Text statusInfo;
         public Text hostInfo;
+
+        private DatabaseManager databaseManager;
 
         //Client numPlayers from NetworkManager is always 0, so we count (throught connect/destroy in LobbyPlayer) the number
         //of players, so that even client know how many player there is.
@@ -446,6 +450,21 @@ namespace Prototype.NetworkLobby
             }
 
             ServerChangeScene(playScene);
+        }
+
+        public override void OnLobbyStartServer()
+        {
+            base.OnLobbyStartServer();
+
+            databaseManager = Instantiate(DatabaseManagerPrefab).GetComponent<DatabaseManager>();
+            DontDestroyOnLoad(databaseManager.gameObject);
+        }
+
+        public override void OnStopServer()
+        {
+            base.OnStopServer();
+
+            Destroy(databaseManager.gameObject);
         }
 
         // ----------------- Client callbacks ------------------

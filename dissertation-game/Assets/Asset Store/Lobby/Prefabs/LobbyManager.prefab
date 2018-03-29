@@ -3236,6 +3236,8 @@ MonoBehaviour:
   m_PlayScene: GameInstance
   lobbySlots: []
   prematchCountdown: 3
+  DatabaseManagerPrefab: {fileID: 1356680472398640, guid: 6ae4965b3ad87a843bc7028ed2880d48,
+    type: 2}
   topPanel: {fileID: 11424994}
   mainMenuPanel: {fileID: 22442386}
   lobbyPanel: {fileID: 22443498}

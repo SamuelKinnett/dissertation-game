@@ -28,6 +28,8 @@ namespace Prototype.NetworkLobby
         public string playerName = "";
         [SyncVar(hook = "OnPlayerTeamChanged")]
         public Team playerTeam = Team.Random;
+        [SyncVar]
+        public int playerId;
 
         public Color OddRowColor = new Color(250.0f / 255.0f, 250.0f / 255.0f, 250.0f / 255.0f, 1.0f);
         public Color EvenRowColor = new Color(180.0f / 255.0f, 180.0f / 255.0f, 180.0f / 255.0f, 1.0f);
@@ -272,6 +274,12 @@ namespace Prototype.NetworkLobby
             {
                 playerTeam = Team.Random;
             }
+        }
+
+        [Command]
+        public void CmdPlayerIdChanged(int playerId)
+        {
+            this.playerId = playerId;
         }
 
         //Cleanup thing when get destroy (which happen when client kick or disconnect)
