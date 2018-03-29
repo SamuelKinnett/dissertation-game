@@ -1,102 +1,140 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 
+using Newtonsoft.Json;
+
 public class PlayerShooting : NetworkBehaviour
 {
-	[SerializeField] int scoreToWin = 5;
-	[SerializeField] Transform firePosition;
-	[SerializeField] ShotEffectsManager shotEffectsManager;
-	[SerializeField] Weapon currentWeapon;
+    public int ScoreToWin = 5;
+    public Transform FirePosition;
+    public ShotEffectsManager ShotEffectsManager;
+    public Weapon CurrentWeapon;
 
-	[SyncVar(hook = "OnScoreChanged")] int score;
+    [SyncVar(hook = "OnScoreChanged")]
+    private int score;
 
-	Player player;
-	bool canShoot;
+    private Player player;
+    private bool canShoot;
 
-	private void Start()
-	{
-		player = GetComponent<Player>();
-		shotEffectsManager.Initialise();
+    private void Start()
+    {
+        player = GetComponent<Player>();
+        ShotEffectsManager.Initialise();
 
-		if (isLocalPlayer) {
-			canShoot = true;
-		}
-	}
+        if (isLocalPlayer)
+        {
+            canShoot = true;
+        }
+    }
 
-	/// <summary>
-	/// Raises the enable event.
-	/// </summary>
-	[ServerCallback]
-	private void OnEnable()
-	{
-		score = 0;
-	}
+    /// <summary>
+    /// Raises the enable event.
+    /// </summary>
+    [ServerCallback]
+    private void OnEnable()
+    {
+        score = 0;
+    }
 
-	private void Update()
-	{
-		if (canShoot) {
-			if (Input.GetButtonDown("Fire1") && currentWeapon.CanFire()) {
-				currentWeapon.Fire();
-				CmdFireShot(firePosition.position, firePosition.forward);
-			}
-		}
-	}
+    private void Update()
+    {
+        if (canShoot)
+        {
+            if (Input.GetButtonDown("Fire1") && CurrentWeapon.CanFire())
+            {
+                CurrentWeapon.Fire();
+                CmdFireShot(FirePosition.position, FirePosition.forward);
+            }
+        }
+    }
 
-	/// <summary>
-	/// Server command to fire a shot
-	/// </summary>
-	/// <param name="origin">Origin of the shot.</param>
-	/// <param name="direction">Direction of the shot.</param>
-	[Command]
-	private void CmdFireShot(Vector3 origin, Vector3 direction)
-	{
-		RaycastHit hit;
+    /// <summary>
+    /// Server command to fire a shot
+    /// </summary>
+    /// <param name="origin">Origin of the shot.</param>
+    /// <param name="direction">Direction of the shot.</param>
+    [Command]
+    private void CmdFireShot(Vector3 origin, Vector3 direction)
+    {
+        RaycastHit hit;
 
-		Ray ray = new Ray(origin, direction);
+        Ray ray = new Ray(origin, direction);
 
-		bool result = Physics.Raycast(ray, out hit, 50f);
+        bool result = Physics.Raycast(ray, out hit, 50f);
 
-		if (result) {
-			PlayerHealth enemy = hit.transform.GetComponent<PlayerHealth>();
+        if (result)
+        {
+            PlayerHealth enemyHealth = hit.transform.GetComponent<PlayerHealth>();
 
-			if (enemy != null) {
-				if (enemy.TakeDamage(currentWeapon.Damage)) {
-					// We've killed an enemy
-					if (++score >= scoreToWin) {
-						player.Won();
-					}
-				}
-			}
-		}
+            if (enemyHealth != null)
+            {
+                Player enemyPlayer = hit.transform.GetComponent<Player>();
 
-		RpcProcessShotEffects(result, hit.point, hit.normal);
-	}
+                // Log the shot to the database
+                int shotId =
+                    DatabaseManager.Instance.AddNewShot(
+                        player.PlayerId,
+                        JsonConvert.SerializeObject(origin),
+                        JsonConvert.SerializeObject(direction),
+                        enemyPlayer.PlayerId,
+                        JsonConvert.SerializeObject(enemyPlayer.transform.position));
 
-	[ClientRpc]
-	private void RpcProcessShotEffects(bool result, Vector3 point, Vector3 normal)
-	{
-		shotEffectsManager.PlayShotEffects();
+                if (enemyHealth.TakeDamage(CurrentWeapon.Damage))
+                {
+                    // We've killed an enemy
+                    // Log the kill to the database
+                    DatabaseManager.Instance.AddKill(
+                        player.PlayerId, 
+                        enemyPlayer.PlayerId, 
+                        shotId);
 
-		if (isLocalPlayer) {
-			// Currently only play the animations on the player's side
-			currentWeapon.PlayShotEffects();
-		}
+                    if (++score >= ScoreToWin)
+                    {
+                        player.Won();
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Log the shot to the database
+            DatabaseManager.Instance.AddNewShot(
+                player.PlayerId,
+                JsonConvert.SerializeObject(origin),
+                JsonConvert.SerializeObject(direction));
+        }
 
-		if (result) {
-			shotEffectsManager.PlayImpactEffect(point, normal);
-		}
-	}
+        RpcProcessShotEffects(result, hit.point, hit.normal);
+    }
 
-	/// <summary>
-	/// Callback to update the player score locally
-	/// </summary>
-	/// <param name="newScore">The new score value.</param>
-	private void OnScoreChanged(int newScore)
-	{
-		score = newScore;
+    [ClientRpc]
+    private void RpcProcessShotEffects(bool result, Vector3 point, Vector3 normal)
+    {
+        ShotEffectsManager.PlayShotEffects();
 
-		if (isLocalPlayer) {
-			PlayerCanvasController.Instance.SetScore(newScore);
-		}
-	}
+        if (isLocalPlayer)
+        {
+            // Currently only play the animations on the player's side
+            CurrentWeapon.PlayShotEffects();
+        }
+
+        if (result)
+        {
+            ShotEffectsManager.PlayImpactEffect(point, normal);
+        }
+    }
+
+    /// <summary>
+    /// Callback to update the player score locally
+    /// </summary>
+    /// <param name="newScore">The new score value.</param>
+    private void OnScoreChanged(int newScore)
+    {
+        score = newScore;
+
+        if (isLocalPlayer)
+        {
+            PlayerCanvasController.Instance.SetScore(newScore);
+        }
+    }
 }

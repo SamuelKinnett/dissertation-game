@@ -13,6 +13,8 @@ using Assets.Scripts.Player.Enums;
 using GAF;
 using GAF.Operators;
 
+using Newtonsoft.Json;
+
 public class SyncListGeneTuple : SyncListStruct<GeneTuple>
 {
 }
@@ -382,6 +384,9 @@ public class MapController : NetworkBehaviour
 
             updatingGenes = false;
             mapUpdateNeeded = false;
+
+            // Store the map in the database
+            DatabaseManager.Instance.InsertNewMap(JsonConvert.SerializeObject(currentGenes));
 
             if (!isClient)
             {

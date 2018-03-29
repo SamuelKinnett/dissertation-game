@@ -11,10 +11,12 @@ using System;
 
 public class DatabaseManager : NetworkBehaviour
 {
-    SQLiteConnection databaseConnection;
+    public static DatabaseManager Instance;
 
-    int currentSessionId;
-    int currentGameId;
+    private SQLiteConnection databaseConnection;
+
+    private int currentSessionId;
+    private int currentGameId;
 
     /// <summary>
     /// Called when starting a new testing session. Inserts a new row into the
@@ -312,7 +314,7 @@ public class DatabaseManager : NetworkBehaviour
                 }
                 else
                 {
-                    command.CommandText = 
+                    command.CommandText =
                         "INSERT INTO Shots (GameId, ShooterId, Origin, Direction, Date) VALUES (@gameid, @playerid, @origin, @direction, @date);" +
                         "SELECT last_insert_rowid();";
                     newShotId = Convert.ToInt32(command.ExecuteScalar());
@@ -370,25 +372,21 @@ public class DatabaseManager : NetworkBehaviour
         currentSessionId = -1;
         currentGameId = -1;
 
-        //if (isServer)
-        //{
         InitialiseDatabase();
         StartNewSession();
-        StartNewGame(GameType.Control);
-        StartNewGame(GameType.Procedural);
-        //}
-        //
-        //var databaseFilePath = $"{Application.dataPath}\\Database\\Database.db";
-        //databaseConnection = new SQLiteConnection($"Data Source={databaseFilePath};Version=3");
-        //databaseConnection.Open();
-        //string sql = "SELECT * FROM GameTypes";
-        //var command = new SQLiteCommand(sql, databaseConnection);
-        //var reader = command.ExecuteReader();
-        //while (reader.Read())
-        //{
-        //    Debug.Log($"Game Type Id: {reader[0]}, Game Type Description: {reader[1]}");
-        //}
-        //databaseConnection.Close();
+    }
+
+    // Ensure there is only one DatabaseManager
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void InitialiseDatabase()
