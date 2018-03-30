@@ -18,8 +18,6 @@ public class CapturePointController : NetworkBehaviour
     // The maximum bonus gained from having more than one person capturing
     public float MaxBonus;
 
-    public BoxCollider collider;
-
     [SyncVar(hook = "OnCurrentControllingTeamChanged")]
     private Team currentControllingTeam;
 

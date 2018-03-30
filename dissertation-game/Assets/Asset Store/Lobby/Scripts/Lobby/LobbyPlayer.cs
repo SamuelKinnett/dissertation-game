@@ -25,11 +25,11 @@ namespace Prototype.NetworkLobby
 
         //OnMyName function will be invoked on clients when server change the value of playerName
         [SyncVar(hook = "OnMyName")]
-        public string playerName = "";
+        public string PlayerName = "";
         [SyncVar(hook = "OnPlayerTeamChanged")]
-        public Team playerTeam = Team.Random;
+        public Team PlayerTeam = Team.Random;
         [SyncVar]
-        public int playerId;
+        public int PlayerId;
 
         public Color OddRowColor = new Color(250.0f / 255.0f, 250.0f / 255.0f, 250.0f / 255.0f, 1.0f);
         public Color EvenRowColor = new Color(180.0f / 255.0f, 180.0f / 255.0f, 180.0f / 255.0f, 1.0f);
@@ -63,8 +63,8 @@ namespace Prototype.NetworkLobby
 
             //setup the player data on UI. The value are SyncVar so the player
             //will be created with the right value currently on server
-            OnMyName(playerName);
-            OnPlayerTeamChanged(playerTeam);
+            OnMyName(PlayerName);
+            OnPlayerTeamChanged(PlayerTeam);
         }
 
         public override void OnStartAuthority()
@@ -114,8 +114,11 @@ namespace Prototype.NetworkLobby
             readyButton.interactable = true;
 
             //have to use child count of player prefab already setup as "this.slot" is not set yet
-            if (playerName == "")
+            if (PlayerName == "")
                 CmdNameChanged("Player" + (LobbyPlayerList._instance.playerListContentTransform.childCount-1));
+
+            // Add this player to the database on the server
+            CmdAddPlayerToDatabse(SystemInfo.deviceUniqueIdentifier);
 
             //we switch from simple name display to name input
             teamButton.interactable = true;
@@ -183,13 +186,13 @@ namespace Prototype.NetworkLobby
 
         public void OnMyName(string newName)
         {
-            playerName = newName;
-            nameInput.text = playerName;
+            PlayerName = newName;
+            nameInput.text = PlayerName;
         }
 
         public void OnPlayerTeamChanged(Team newTeam)
         {
-            playerTeam = newTeam;
+            PlayerTeam = newTeam;
             switch(newTeam)
             {
                 case Team.Random:
@@ -260,26 +263,26 @@ namespace Prototype.NetworkLobby
         [Command]
         public void CmdNameChanged(string name)
         {
-            playerName = name;
+            PlayerName = name;
         }
 
         [Command]
         public void CmdTeamChanged()
         {
-            if ((int)playerTeam < (int)Team.Blue)
+            if ((int)PlayerTeam < (int)Team.Blue)
             {
-                ++playerTeam;
+                ++PlayerTeam;
             }
             else
             {
-                playerTeam = Team.Random;
+                PlayerTeam = Team.Random;
             }
         }
 
         [Command]
-        public void CmdPlayerIdChanged(int playerId)
+        public void CmdAddPlayerToDatabse(string deviceId)
         {
-            this.playerId = playerId;
+            PlayerId = DatabaseManager.Instance.AddPlayer(PlayerName, deviceId);
         }
 
         //Cleanup thing when get destroy (which happen when client kick or disconnect)

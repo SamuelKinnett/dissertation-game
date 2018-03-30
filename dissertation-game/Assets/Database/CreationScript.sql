@@ -42,6 +42,7 @@ CREATE TABLE Maps (
 
 CREATE TABLE Players (
     PlayerId INTEGER PRIMARY KEY NOT NULL,
+    PlayerDeviceId TEXT NOT NULL UNIQUE,
     Name NCHAR(50)
 );
 

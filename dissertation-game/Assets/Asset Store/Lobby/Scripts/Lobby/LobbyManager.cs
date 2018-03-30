@@ -371,7 +371,7 @@ namespace Prototype.NetworkLobby
             {
                 if (lobbySlots[i] != null)
                 {
-                    switch ((lobbySlots[i] as LobbyPlayer).playerTeam)
+                    switch ((lobbySlots[i] as LobbyPlayer).PlayerTeam)
                     {
                         case Team.Random:
                             unplacedIndices.Add(i);
@@ -411,7 +411,7 @@ namespace Prototype.NetworkLobby
                     --remainingBlue;
                 }
 
-                (lobbySlots[unplacedIndex] as LobbyPlayer).playerTeam = newTeam;
+                (lobbySlots[unplacedIndex] as LobbyPlayer).PlayerTeam = newTeam;
             }
         }
 
@@ -458,6 +458,8 @@ namespace Prototype.NetworkLobby
 
             databaseManager = Instantiate(DatabaseManagerPrefab).GetComponent<DatabaseManager>();
             DontDestroyOnLoad(databaseManager.gameObject);
+
+            DatabaseManager.Instance.StartNewSession();
         }
 
         public override void OnStopServer()

@@ -100,27 +100,43 @@ public class DatabaseManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Inserts a new player into the Players table and returns the PlayerId
-    /// of the newly created row.
+    /// If a player entry does not exist for the specified device ID, a new row
+    /// is inserted into the Players table and the new player ID is returned.
+    /// Otherwise the existing player ID is returned.
     /// </summary>
-    public int InsertNewPlayer(string playerName)
+    public int AddPlayer(string playerName, string playerDeviceId)
     {
         int newPlayerId = -1;
-        var sql = "INSERT INTO Players (Name) VALUES (@name);" +
-            "SELECT last_insert_rowid();";
 
-        // Ensure the player name isn't longer than the allowed maximum (50
-        // characters) and, if it is, truncate it.
-        playerName = playerName.Length > 50
-            ? playerName.Substring(0, 50)
-            : playerName;
-
-        using (var command = new SQLiteCommand(sql, databaseConnection))
+        using (var command = new SQLiteCommand(databaseConnection))
         {
             databaseConnection.Open();
 
-            command.Parameters.Add(new SQLiteParameter("@name", playerName));
-            newPlayerId = Convert.ToInt32(command.ExecuteScalar());
+            // Check to see if this player has connected before
+            command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerDeviceId = @playerdeviceid);";
+            command.Parameters.Add(new SQLiteParameter("@playerdeviceid", playerDeviceId));
+            bool playerAlreadyPresent = Convert.ToBoolean(command.ExecuteScalar());
+
+            if (playerAlreadyPresent)
+            {
+                // Retrieve the player ID for the player device ID
+                command.CommandText = "SELECT PlayerId FROM Players WHERE PlayerDeviceId = @playerdeviceid;";
+                newPlayerId = Convert.ToInt32(command.ExecuteScalar());
+            }
+            else
+            {
+                // Ensure the player name isn't longer than the allowed maximum (50
+                // characters) and, if it is, truncate it.
+                playerName = playerName.Length > 50
+                    ? playerName.Substring(0, 50)
+                    : playerName;
+
+                // Add the player to the database
+                command.CommandText = "INSERT INTO Players (PlayerDeviceId, Name) VALUES (@playerdeviceid, @name);" +
+                    "SELECT last_insert_rowid();";
+                command.Parameters.Add(new SQLiteParameter("@name", playerName));
+                newPlayerId = Convert.ToInt32(command.ExecuteScalar());
+            }
 
             databaseConnection.Close();
         }
@@ -132,7 +148,7 @@ public class DatabaseManager : NetworkBehaviour
     /// Inserts a new team into the Teams table for the current game and 
     /// returns the TeamId of the newly created row.
     /// </summary>
-    public int InsertNewTeam()
+    public int AddTeam()
     {
         if (currentGameId == -1)
         {
@@ -367,13 +383,12 @@ public class DatabaseManager : NetworkBehaviour
     }
 
     // Use this for initialization
-    void Start()
+    private void Start()
     {
         currentSessionId = -1;
         currentGameId = -1;
 
         InitialiseDatabase();
-        StartNewSession();
     }
 
     // Ensure there is only one DatabaseManager

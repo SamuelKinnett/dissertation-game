@@ -644,9 +644,9 @@ PlayerSettings:
   cloudServicesEnabled: {}
   facebookSdkVersion: 7.9.4
   apiCompatibilityLevel: 3
-  cloudProjectId: 
-  projectName: 
-  organizationId: 
+  cloudProjectId: e6e5dbd3-f946-4508-8e66-58e5b4adddb7
+  projectName: dissertation-game
+  organizationId: samuel-kinnett-a52935ad-dff8-442d-9800-1600a34b4742
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0
