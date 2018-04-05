@@ -40,8 +40,6 @@ public class MapChunkController : NetworkBehaviour
 	private int chunkHeight;
 	private int chunkLength;
 
-    private byte[,,] oldMapData;
-
     private bool initialised;
 	private MapController mapController;
 
@@ -156,8 +154,6 @@ public class MapChunkController : NetworkBehaviour
 
 		mesh = MeshFilter.mesh;
         previewMesh = MeshFilterPreview.mesh;
-
-        oldMapData = new byte[chunkWidth, chunkHeight, chunkLength];
 
 		newVertices = new List<Vector3>();
 		newTriangles = new List<int>();
