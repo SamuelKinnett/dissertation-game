@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 using Assets.Scripts.Player.Enums;
+using Assets.Scripts.UI;
 
 namespace Prototype.NetworkLobby
 {
@@ -196,15 +197,15 @@ namespace Prototype.NetworkLobby
             switch(newTeam)
             {
                 case Team.Random:
-                    teamButton.GetComponent<Image>().color = Color.grey;
+                    teamButton.GetComponent<Image>().color = StaticColours.NeautralColour;
                     break;
 
                 case Team.Red:
-                    teamButton.GetComponent<Image>().color = Color.red;
+                    teamButton.GetComponent<Image>().color = StaticColours.RedTeamColour;
                     break;
 
                 case Team.Blue:
-                    teamButton.GetComponent<Image>().color = Color.blue;
+                    teamButton.GetComponent<Image>().color = StaticColours.BlueTeamColour;
                     break;
             }
         }

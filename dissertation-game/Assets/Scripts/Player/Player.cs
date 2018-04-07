@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 
 using Assets.Scripts.Player.Enums;
+using Assets.Scripts.UI;
 
 [System.Serializable]
 public class ToggleEvent : UnityEvent<bool>
@@ -23,8 +24,12 @@ public class Player : NetworkBehaviour
     [SyncVar(hook = "OnIsCapturingChanged")]
     public bool IsCapturing;
 
+    [SyncVar(hook = "OnDeathsChanged")]
+    public int Deaths;
+
     [SyncVar]
     public int PlayerId;
+
 
     public MapController mapController;
     public GameObject playerCapsule;
@@ -83,6 +88,8 @@ public class Player : NetworkBehaviour
         {
             EnablePlayer();
         }
+
+        PlayerCanvasController.Instance.AddPlayerToScoreboard(this);
     }
 
     private void Update()
@@ -177,28 +184,37 @@ public class Player : NetworkBehaviour
         PlayerName = value;
         gameObject.name = PlayerName;
         playerNameText.text = PlayerName;
+
+        PlayerCanvasController.Instance.UpdatePlayerNameOnScoreboard(this);
     }
 
     private void OnTeamChanged(Team newValue)
     {
-        var newColour = Color.grey;
+        var newColour = StaticColours.NeautralColour;
 
         switch (newValue)
         {
             case Team.Red:
-                newColour = Color.red;
+                newColour = StaticColours.RedTeamColour;
                 break;
 
             case Team.Blue:
-                newColour = Color.blue;
+                newColour = StaticColours.BlueTeamColour;
                 break;
         }
 
         playerCapsule.GetComponent<Renderer>().material.color = newColour;
+
+        PlayerCanvasController.Instance.UpdatePlayerTeamOnScoreboard(this);
     }
 
     private void OnIsCapturingChanged(bool newValue)
     {
+    }
+
+    private void OnDeathsChanged(int newValue)
+    {
+        PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this);
     }
 
     private void BackToLobby()

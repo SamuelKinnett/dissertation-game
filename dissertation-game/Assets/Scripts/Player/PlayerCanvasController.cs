@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Player.Enums;
+using Assets.Scripts.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,11 +14,15 @@ public class PlayerCanvasController : MonoBehaviour
     public Text HealthValue;
     public Text ScoreValue;
     public Text LogText;
+    public Text RedTeamLabelText;
     public Text RedTeamTimerText;
-    public Text BlueTeamTimeText;
+    public Text BlueTeamLabelText;
+    public Text BlueTeamTimerText;
     public AudioSource DeathAudio;
     public Slider RedTeamCapturePercentageSlider;
     public Slider BlueTeamCapturePercentageSlider;
+
+    public ScoreboardController ScoreboardController;
 
     //Ensure there is only one PlayerCanvasController
     void Awake()
@@ -35,13 +40,26 @@ public class PlayerCanvasController : MonoBehaviour
     private void Update()
     {
         RedTeamTimerText.text = ConvertTimeToString(GameTimeManager.Instance.RedTeamCaptureTimeRemaining);
-        BlueTeamTimeText.text = ConvertTimeToString(GameTimeManager.Instance.BlueTeamCaptureTimeRemaining);
+        BlueTeamTimerText.text = ConvertTimeToString(GameTimeManager.Instance.BlueTeamCaptureTimeRemaining);
+
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            ScoreboardController.gameObject.SetActive(true);
+        }
+        else if (Input.GetKeyUp(KeyCode.Tab))
+        {
+            ScoreboardController.gameObject.SetActive(false);
+        }
     }
 
     public void Initialise()
     {
         Crosshair.enabled = true;
         GameStatusText.text = "";
+        RedTeamLabelText.color = StaticColours.RedTeamColour;
+        RedTeamTimerText.color = StaticColours.RedTeamColour;
+        BlueTeamLabelText.color = StaticColours.BlueTeamColour;
+        BlueTeamTimerText.color = StaticColours.BlueTeamColour;
     }
 
     /// <summary>
@@ -121,10 +139,41 @@ public class PlayerCanvasController : MonoBehaviour
         Invoke("ClearLogText", duration);
     }
 
+    public void AddPlayerToScoreboard(Player player)
+    {
+        ScoreboardController.AddPlayer(player.PlayerId, player.PlayerTeam);
+        ScoreboardController.UpdatePlayerName(player.PlayerId, player.PlayerName);
+    }
+
+    public void RemovePlayerFromScoreboard(Player player)
+    {
+        ScoreboardController.RemovePlayer(player.PlayerId);
+    }
+
+    public void UpdatePlayerNameOnScoreboard(Player player)
+    {
+        ScoreboardController.UpdatePlayerName(player.PlayerId, player.PlayerName);
+    }
+
+    public void UpdatePlayerKillsOnScoreboard(Player player, int newKills)
+    {
+        ScoreboardController.UpdatePlayerKills(player.PlayerId, newKills);
+    }
+
+    public void UpdatePlayerDeathsOnScoreboard(Player player)
+    {
+        ScoreboardController.UpdatePlayerDeaths(player.PlayerId, player.Deaths);
+    }
+
+    public void UpdatePlayerTeamOnScoreboard(Player player)
+    {
+        ScoreboardController.UpdatePlayerTeam(player.PlayerId, player.PlayerTeam);
+    }
+
     /// <summary>
     /// Clears the log text.
     /// </summary>
-    void ClearLogText()
+    private void ClearLogText()
     {
         LogText.text = "";
     }

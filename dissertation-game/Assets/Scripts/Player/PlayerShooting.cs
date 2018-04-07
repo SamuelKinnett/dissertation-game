@@ -10,8 +10,8 @@ public class PlayerShooting : NetworkBehaviour
     public ShotEffectsManager ShotEffectsManager;
     public Weapon CurrentWeapon;
 
-    [SyncVar(hook = "OnScoreChanged")]
-    private int score;
+    [SyncVar(hook = "OnKillsChanged")]
+    private int kills;
 
     private Player player;
     private bool canShoot;
@@ -33,7 +33,7 @@ public class PlayerShooting : NetworkBehaviour
     [ServerCallback]
     private void OnEnable()
     {
-        score = 0;
+        kills = 0;
     }
 
     private void Update()
@@ -88,7 +88,7 @@ public class PlayerShooting : NetworkBehaviour
                         enemyPlayer.PlayerId, 
                         shotId);
 
-                    if (++score >= ScoreToWin)
+                    if (++kills >= ScoreToWin)
                     {
                         player.Won();
                     }
@@ -128,9 +128,10 @@ public class PlayerShooting : NetworkBehaviour
     /// Callback to update the player score locally
     /// </summary>
     /// <param name="newScore">The new score value.</param>
-    private void OnScoreChanged(int newScore)
+    private void OnKillsChanged(int newScore)
     {
-        score = newScore;
+        kills = newScore;
+        PlayerCanvasController.Instance.UpdatePlayerKillsOnScoreboard(player, kills);
 
         if (isLocalPlayer)
         {

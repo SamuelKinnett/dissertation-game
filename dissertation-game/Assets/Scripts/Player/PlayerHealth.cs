@@ -3,9 +3,11 @@ using UnityEngine.Networking;
 
 public class PlayerHealth : NetworkBehaviour
 {
-	[SerializeField] int maxHealth = 3;
+	[SerializeField]
+    int maxHealth = 3;
 
-	[SyncVar(hook = "OnHealthChanged")] int health;
+	[SyncVar(hook = "OnHealthChanged")]
+    int health;
 
 	Player player;
 
@@ -23,6 +25,7 @@ public class PlayerHealth : NetworkBehaviour
             if (health <= 0)
             {
                 RpcTakeDamage(true);
+                player.Deaths += 1;
                 player.Die();   // Make sure to kill the player object on the server
                 return true;
             }
