@@ -89,7 +89,10 @@ public class Player : NetworkBehaviour
             EnablePlayer();
         }
 
-        PlayerCanvasController.Instance.AddPlayerToScoreboard(this);
+        if (!isServer)
+        {
+            PlayerCanvasController.Instance.AddPlayerToScoreboard(this);
+        }
     }
 
     private void Update()
@@ -185,7 +188,10 @@ public class Player : NetworkBehaviour
         gameObject.name = PlayerName;
         playerNameText.text = PlayerName;
 
-        PlayerCanvasController.Instance.UpdatePlayerNameOnScoreboard(this);
+        if (!isServer)
+        {
+            PlayerCanvasController.Instance.UpdatePlayerNameOnScoreboard(this);
+        }
     }
 
     private void OnTeamChanged(Team newValue)
@@ -205,7 +211,10 @@ public class Player : NetworkBehaviour
 
         playerCapsule.GetComponent<Renderer>().material.color = newColour;
 
-        PlayerCanvasController.Instance.UpdatePlayerTeamOnScoreboard(this);
+        if (!isServer)
+        {
+            PlayerCanvasController.Instance.UpdatePlayerTeamOnScoreboard(this);
+        }
     }
 
     private void OnIsCapturingChanged(bool newValue)
@@ -214,7 +223,10 @@ public class Player : NetworkBehaviour
 
     private void OnDeathsChanged(int newValue)
     {
-        PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this);
+        if (!isServer)
+        {
+            PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this);
+        }
     }
 
     private void BackToLobby()

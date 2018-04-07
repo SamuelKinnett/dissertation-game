@@ -1,31 +1,32 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+
+using Mono.Data.Sqlite;
 
 using UnityEngine;
 using UnityEngine.Networking;
 
 using Assets.Scripts.Environment.Enums;
-using System;
 
 public class DatabaseManager : NetworkBehaviour
 {
     public static DatabaseManager Instance;
 
-    private SQLiteConnection databaseConnection;
+    private SqliteConnection databaseConnection;
 
     private int currentSessionId;
     private int currentGameId;
 
     public void InitialiseDatabase()
     {
-        var connectionString = new SQLiteConnectionStringBuilder();
+        var connectionString = new SqliteConnectionStringBuilder();
         connectionString.DataSource = $"{Application.streamingAssetsPath}/Database/Database.db";
-        connectionString.ForeignKeys = true;
+        // connectionString.ForeignKeys = true;
         connectionString.Version = 3;
 
-        databaseConnection = new SQLiteConnection(connectionString.ToString());
+        databaseConnection = new SqliteConnection(connectionString.ToString());
     }
 
     /// <summary>
@@ -38,7 +39,7 @@ public class DatabaseManager : NetworkBehaviour
             "INSERT INTO Sessions DEFAULT VALUES;" +
             "SELECT last_insert_rowid();";
 
-        using (var command = new SQLiteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, databaseConnection))
         {
             databaseConnection.Open();
 
@@ -65,13 +66,13 @@ public class DatabaseManager : NetworkBehaviour
             "INSERT INTO Games (SessionId, GameTypeId, Date, Duration) VALUES (@sessionid, @gametypeid, @date, 0);" +
             "SELECT last_insert_rowid();";
 
-        using (var command = new SQLiteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, databaseConnection))
         {
             databaseConnection.Open();
 
-            command.Parameters.Add(new SQLiteParameter("@sessionid", currentSessionId));
-            command.Parameters.Add(new SQLiteParameter("@gametypeid", (int)gameType));
-            command.Parameters.Add(new SQLiteParameter("@date", DateTimeOffset.Now.ToUnixTimeSeconds()));
+            command.Parameters.Add(new SqliteParameter("@sessionid", currentSessionId));
+            command.Parameters.Add(new SqliteParameter("@gametypeid", (int)gameType));
+            command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.Now.ToUnixTimeSeconds()));
             currentGameId = Convert.ToInt32(command.ExecuteScalar());
 
             databaseConnection.Close();
@@ -94,13 +95,13 @@ public class DatabaseManager : NetworkBehaviour
 
         var sql = "INSERT INTO Maps (GameId, Date, Chromosome) VALUES (@gameid, @date, @chromosome);";
 
-        using (var command = new SQLiteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, databaseConnection))
         {
             databaseConnection.Open();
 
-            command.Parameters.Add(new SQLiteParameter("@gameid", currentGameId));
-            command.Parameters.Add(new SQLiteParameter("@date", DateTimeOffset.Now.ToUnixTimeSeconds()));
-            command.Parameters.Add(new SQLiteParameter("@chromosome", chromosome));
+            command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+            command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.Now.ToUnixTimeSeconds()));
+            command.Parameters.Add(new SqliteParameter("@chromosome", chromosome));
             command.ExecuteNonQuery();
 
             databaseConnection.Close();
@@ -118,17 +119,19 @@ public class DatabaseManager : NetworkBehaviour
     {
         int newPlayerId = -1;
 
-        using (var command = new SQLiteCommand(databaseConnection))
+        using (var command = new SqliteCommand(databaseConnection))
         {
             databaseConnection.Open();
 
             // Check to see if this player has connected before
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerDeviceId = @playerdeviceid);";
-            command.Parameters.Add(new SQLiteParameter("@playerdeviceid", playerDeviceId));
+            command.Parameters.Add(new SqliteParameter("@playerdeviceid", playerDeviceId));
             bool playerAlreadyPresent = Convert.ToBoolean(command.ExecuteScalar());
 
             if (playerAlreadyPresent)
             {
+                Debug.Log("Player already present");
+
                 // Retrieve the player ID for the player device ID
                 command.CommandText = "SELECT PlayerId FROM Players WHERE PlayerDeviceId = @playerdeviceid;";
                 newPlayerId = Convert.ToInt32(command.ExecuteScalar());
@@ -144,7 +147,7 @@ public class DatabaseManager : NetworkBehaviour
                 // Add the player to the database
                 command.CommandText = "INSERT INTO Players (PlayerDeviceId, Name) VALUES (@playerdeviceid, @name);" +
                     "SELECT last_insert_rowid();";
-                command.Parameters.Add(new SQLiteParameter("@name", playerName));
+                command.Parameters.Add(new SqliteParameter("@name", playerName));
                 newPlayerId = Convert.ToInt32(command.ExecuteScalar());
             }
 
@@ -169,11 +172,11 @@ public class DatabaseManager : NetworkBehaviour
         var sql = "INSERT INTO Teams (GameId) VALUES (@gameid);" +
             "SELECT last_insert_rowid();";
 
-        using (var command = new SQLiteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, databaseConnection))
         {
             databaseConnection.Open();
 
-            command.Parameters.Add(new SQLiteParameter("@gameid", currentGameId));
+            command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
             newTeamId = Convert.ToInt32(command.ExecuteScalar());
 
             databaseConnection.Close();
@@ -184,14 +187,16 @@ public class DatabaseManager : NetworkBehaviour
 
     public void AddPlayerToTeam(int playerId, int teamId)
     {
-        using (var command = new SQLiteCommand(databaseConnection))
+        using (var command = new SqliteCommand(databaseConnection))
         {
+            databaseConnection.Open();
+
             // Check that the player and team exist
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
-            command.Parameters.Add(new SQLiteParameter("@playerid", playerId));
+            command.Parameters.Add(new SqliteParameter("@playerid", playerId));
             bool playerExists = Convert.ToBoolean(command.ExecuteScalar());
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Teams WHERE TeamId = @teamid);";
-            command.Parameters.Add(new SQLiteParameter("@teamid", teamId));
+            command.Parameters.Add(new SqliteParameter("@teamid", teamId));
             bool teamExists = Convert.ToBoolean(command.ExecuteScalar());
 
             if (playerExists && teamExists)
@@ -203,6 +208,8 @@ public class DatabaseManager : NetworkBehaviour
             {
                 throw new Exception("The specified player or team does not exist in the database.");
             }
+
+            databaseConnection.Close();
         }
     }
 
@@ -213,11 +220,13 @@ public class DatabaseManager : NetworkBehaviour
     /// </summary>
     public void FinishGame(int gameId, int winningTeamId = -1)
     {
-        using (var command = new SQLiteCommand(databaseConnection))
+        using (var command = new SqliteCommand(databaseConnection))
         {
+            databaseConnection.Open();
+
             // Check that the game exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Games WHERE GameId = @gameid);";
-            command.Parameters.Add(new SQLiteParameter("@gameid", gameId));
+            command.Parameters.Add(new SqliteParameter("@gameid", gameId));
             bool gameExists = Convert.ToBoolean(command.ExecuteScalar());
 
             if (gameExists)
@@ -228,14 +237,14 @@ public class DatabaseManager : NetworkBehaviour
                 long duration = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - datetimeGameStarted;
 
                 command.CommandText = "UPDATE Games SET Duration = @duration WHERE GameId = @gameid;";
-                command.Parameters.Add(new SQLiteParameter("@duration", duration));
+                command.Parameters.Add(new SqliteParameter("@duration", duration));
                 command.ExecuteNonQuery();
 
                 if (winningTeamId != -1)
                 {
                     // Check that the winning team exists
                     command.CommandText = "SELECT EXISTS (SELECT 1 FROM Teams WHERE TeamId = @teamid);";
-                    command.Parameters.Add(new SQLiteParameter("@teamid", winningTeamId));
+                    command.Parameters.Add(new SqliteParameter("@teamid", winningTeamId));
                     bool winningTeamExists = Convert.ToBoolean(command.ExecuteScalar());
 
                     if (winningTeamExists)
@@ -253,6 +262,8 @@ public class DatabaseManager : NetworkBehaviour
             {
                 throw new Exception("The provided game does not exist.");
             }
+
+            databaseConnection.Close();
         }
     }
 
@@ -267,24 +278,28 @@ public class DatabaseManager : NetworkBehaviour
             throw new Exception("Cannot add a capture when a game has not been started.");
         }
 
-        using (var command = new SQLiteCommand(databaseConnection))
+        using (var command = new SqliteCommand(databaseConnection))
         {
+            databaseConnection.Open();
+
             // Check the team exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Teams WHERE TeamId = @teamid);";
-            command.Parameters.Add(new SQLiteParameter("@teamid", teamId));
+            command.Parameters.Add(new SqliteParameter("@teamid", teamId));
             bool teamExists = Convert.ToBoolean(command.ExecuteScalar());
 
             if (teamExists)
             {
                 command.CommandText = "INSERT INTO Captures (GameId, TeamId, Date) VALUES (@gameid, @teamid, @date);";
-                command.Parameters.Add(new SQLiteParameter("@gameid", currentGameId));
-                command.Parameters.Add(new SQLiteParameter("@date", DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
+                command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+                command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
                 command.ExecuteNonQuery();
             }
             else
             {
                 throw new Exception("The provided team does not exist");
             }
+
+            databaseConnection.Close();
         }
     }
 
@@ -302,26 +317,28 @@ public class DatabaseManager : NetworkBehaviour
 
         int newShotId = -1;
 
-        using (var command = new SQLiteCommand(databaseConnection))
+        using (var command = new SqliteCommand(databaseConnection))
         {
+            databaseConnection.Open();
+
             // Check that the player exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
-            command.Parameters.Add(new SQLiteParameter("@playerid", playerId));
+            command.Parameters.Add(new SqliteParameter("@playerid", playerId));
             bool playerExists = Convert.ToBoolean(command.ExecuteScalar());
 
             if (playerExists)
             {
                 var currentDateTimeInt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                command.Parameters.Add(new SQLiteParameter("@gameid", currentGameId));
-                command.Parameters.Add(new SQLiteParameter("@origin", origin));
-                command.Parameters.Add(new SQLiteParameter("@direction", direction));
-                command.Parameters.Add(new SQLiteParameter("@date", currentDateTimeInt));
+                command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+                command.Parameters.Add(new SqliteParameter("@origin", origin));
+                command.Parameters.Add(new SqliteParameter("@direction", direction));
+                command.Parameters.Add(new SqliteParameter("@date", currentDateTimeInt));
 
                 if (recipientId != -1)
                 {
                     // Check that the recipient exists
                     command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @recipientid);";
-                    command.Parameters.Add(new SQLiteParameter("@recipientid", recipientId));
+                    command.Parameters.Add(new SqliteParameter("@recipientid", recipientId));
                     bool recipientExists = Convert.ToBoolean(command.ExecuteScalar());
 
                     if (recipientExists)
@@ -329,8 +346,8 @@ public class DatabaseManager : NetworkBehaviour
                         command.CommandText =
                             "INSERT INTO Shots (GameId, ShooterId, Origin, Direction, RecipientId, RecipientPosition, Date) VALUES (@gameid, @playerid, @origin, @direction, @recipientid, @recipientposition, @date);" +
                             "SELECT last_insert_rowid();";
-                        command.Parameters.Add(new SQLiteParameter("@recipientid", recipientId));
-                        command.Parameters.Add(new SQLiteParameter("@recipientposition", recipientPosition));
+                        command.Parameters.Add(new SqliteParameter("@recipientid", recipientId));
+                        command.Parameters.Add(new SqliteParameter("@recipientposition", recipientPosition));
                         newShotId = Convert.ToInt32(command.ExecuteScalar());
                     }
                     else
@@ -350,6 +367,8 @@ public class DatabaseManager : NetworkBehaviour
             {
                 throw new Exception("The provided player does not exist.");
             }
+
+            databaseConnection.Close();
         }
 
         return newShotId;
@@ -366,29 +385,33 @@ public class DatabaseManager : NetworkBehaviour
             throw new Exception("Cannot add a kill when a game has not been started.");
         }
 
-        using (var command = new SQLiteCommand(databaseConnection))
+        using (var command = new SqliteCommand(databaseConnection))
         {
+            databaseConnection.Open();
+
             // Check that the player, target and shot all exist
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
-            command.Parameters.Add(new SQLiteParameter("@playerid", playerId));
+            command.Parameters.Add(new SqliteParameter("@playerid", playerId));
             bool playerExists = Convert.ToBoolean(command.ExecuteScalar());
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @targetid);";
-            command.Parameters.Add(new SQLiteParameter("@targetid", targetId));
+            command.Parameters.Add(new SqliteParameter("@targetid", targetId));
             bool targetExists = Convert.ToBoolean(command.ExecuteScalar());
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Shots WHERE ShotId = @shotid);";
-            command.Parameters.Add(new SQLiteParameter("@shotid", shotId));
+            command.Parameters.Add(new SqliteParameter("@shotid", shotId));
             bool shotExists = Convert.ToBoolean(command.ExecuteScalar());
 
             if (playerExists && targetExists && shotExists)
             {
                 command.CommandText = "INSERT INTO Kills (KillerId, TargetId, GameId, ShotId) values (@playerid, @targetid, @gameid, @shotid);";
-                command.Parameters.Add(new SQLiteParameter("@gameid", currentGameId));
+                command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
                 command.ExecuteNonQuery();
             }
             else
             {
                 throw new Exception("The specified player, target or shot does not exist in the database.");
             }
+
+            databaseConnection.Close();
         }
     }
 

@@ -19,5 +19,6 @@ public class GameLobbyHook : LobbyHook
 		// Assign the player's lobby name and colour to their game object
 		gamePlayer.PlayerName = lobbyPlayer.PlayerName;
 		gamePlayer.PlayerTeam = lobbyPlayer.PlayerTeam;
+        gamePlayer.PlayerId = lobbyPlayer.PlayerId;
 	}
 }

@@ -12,13 +12,16 @@
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectGenerator>VSTU</UnityProjectGenerator>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2017.3.1f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
@@ -278,15 +281,6 @@
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>C:/Program Files (x86)/Microsoft Visual Studio Tools for Unity/15.0/Editor/SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data">
-      <HintPath>Assets/packages/System.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework">
-      <HintPath>Assets/packages/EntityFramework.6.0.0/lib/net45/EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer">
-      <HintPath>Assets/packages/EntityFramework.6.0.0/lib/net45/EntityFramework.SqlServer.dll</HintPath>
-    </Reference>
     <Reference Include="GAF">
       <HintPath>Assets/packages/GAF.2.3.1/lib/net40/GAF.dll</HintPath>
     </Reference>
@@ -295,15 +289,6 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Assets/packages/Newtonsoft.Json.11.0.1/lib/net45/Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite">
-      <HintPath>Assets/packages/System.Data.SQLite.Core.1.0.108.0/lib/net46/System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.EF6">
-      <HintPath>Assets/packages/System.Data.SQLite.EF6.1.0.108.0/lib/net46/System.Data.SQLite.EF6.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.Linq">
-      <HintPath>Assets/packages/System.Data.SQLite.Linq.1.0.108.0/lib/net46/System.Data.SQLite.Linq.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Advertisements">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.3/UnityEngine.Advertisements.dll</HintPath>
@@ -325,6 +310,12 @@
     </Reference>
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.10/UnityEngine.StandardEvents.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data">
+      <HintPath>Assets/Plugins/System.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Data.Sqlite">
+      <HintPath>Assets/Plugins/Mono.Data.Sqlite.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -405,6 +396,7 @@
     <Compile Include="Assets\Scripts\Environment\MapChunkController.cs" />
     <Compile Include="Assets\Scripts\Environment\MapController.cs" />
     <Compile Include="Assets\Scripts\Environment\Structs\SyncListTuple.cs" />
+    <Compile Include="Assets\Scripts\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Scripts\Network\CustomNetworkManager.cs" />
     <Compile Include="Assets\Scripts\Network\GameLobbyHook.cs" />
     <Compile Include="Assets\Scripts\Player\Enums\Team.cs" />
@@ -441,12 +433,8 @@
     <None Include="Assets\Asset Store\Standard Assets\ParticleSystems\Shaders\PriorityParticleAlpha.shader" />
     <None Include="Assets\Audio\_readme_and_license.txt" />
     <None Include="Assets\Fonts\OpenSans\License!.txt" />
-    <None Include="Assets\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.SqlServer.xml" />
-    <None Include="Assets\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.xml" />
-    <None Include="Assets\packages\EntityFramework.6.0.0\tools\about_EntityFramework.help.txt" />
     <None Include="Assets\packages\GAF.2.3.1\lib\net40\GAF.xml" />
     <None Include="Assets\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.xml" />
-    <None Include="Assets\packages\System.Data.SQLite.Core.1.0.108.0\lib\net46\System.Data.SQLite.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

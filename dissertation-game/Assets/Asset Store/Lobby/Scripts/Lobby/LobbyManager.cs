@@ -8,6 +8,7 @@ using UnityEngine.Networking;
 using UnityEngine.Networking.Types;
 using UnityEngine.Networking.Match;
 using Assets.Scripts.Player.Enums;
+using Assets.Scripts.Environment.Enums;
 
 namespace Prototype.NetworkLobby
 {
@@ -354,7 +355,11 @@ namespace Prototype.NetworkLobby
 
             if (allready)
             {
-                ResolveTeams();
+                DatabaseManager.Instance.StartNewGame(GameType.Procedural);
+                var redTeamId = DatabaseManager.Instance.AddTeam();
+                var blueTeamId = DatabaseManager.Instance.AddTeam();
+
+                ResolvePlayers(redTeamId, blueTeamId);
                 StartCoroutine(ServerCountdownCoroutine());
             }
         }
@@ -445,7 +450,7 @@ namespace Prototype.NetworkLobby
             infoPanel.Display("Cient error : " + (errorCode == 6 ? "timeout" : errorCode.ToString()), "Close", null);
         }
 
-        private void ResolveTeams()
+        private void ResolvePlayers(int redTeamId, int blueTeamId)
         {
             int redCount = 0;
             int blueCount = 0;
@@ -457,6 +462,15 @@ namespace Prototype.NetworkLobby
             {
                 if (lobbySlots[i] != null)
                 {
+                    // If the player hasn't been added to the database then do so
+                    var playerName = (lobbySlots[i] as LobbyPlayer).PlayerName;
+                    var playerDeviceId = System.IO.Path.GetRandomFileName().Replace(".", "");
+
+                    if ((lobbySlots[i] as LobbyPlayer).PlayerId == -1)
+                    {
+                        (lobbySlots[i] as LobbyPlayer).PlayerId = DatabaseManager.Instance.AddPlayer(playerName, playerDeviceId);
+                    }
+
                     switch ((lobbySlots[i] as LobbyPlayer).PlayerTeam)
                     {
                         case Team.Random:
@@ -464,10 +478,12 @@ namespace Prototype.NetworkLobby
                             break;
 
                         case Team.Red:
+                            DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[i] as LobbyPlayer).PlayerId, redTeamId);
                             ++redCount;
                             break;
 
                         case Team.Blue:
+                            DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[i] as LobbyPlayer).PlayerId, blueTeamId);
                             ++blueCount;
                             break;
                     }
@@ -490,25 +506,16 @@ namespace Prototype.NetworkLobby
 
                 if (newTeam == Team.Red)
                 {
+                    DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[unplacedIndex] as LobbyPlayer).PlayerId, redTeamId);
                     --remainingRed;
                 }
                 else
                 {
+                    DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[unplacedIndex] as LobbyPlayer).PlayerId, blueTeamId);
                     --remainingBlue;
                 }
 
                 (lobbySlots[unplacedIndex] as LobbyPlayer).PlayerTeam = newTeam;
-            }
-        }
-
-        private void AddPlayersToDatabase()
-        {
-            for (int i = 0; i < lobbySlots.Length; ++i)
-            {
-                if (lobbySlots[i] != null)
-                {
-
-                }
             }
         }
     }

@@ -14,9 +14,16 @@ public class ScoreboardController : MonoBehaviour
 
     public void AddPlayer(int playerId, Team playerTeam = Team.Random)
     {
+        if (playerScores == null)
+        {
+            playerScores = new Dictionary<int, PlayerScoreController>();
+        }
+
         if (!playerScores.ContainsKey(playerId))
         {
-            playerScores.Add(playerId, Instantiate(PlayerScorePrefab).GetComponent<PlayerScoreController>());
+            var newPlayerScoreController = Instantiate(PlayerScorePrefab).GetComponent<PlayerScoreController>();
+            newPlayerScoreController.gameObject.transform.parent = gameObject.transform;
+            playerScores.Add(playerId, newPlayerScoreController);
         }
 
         playerScores[playerId].PlayerTeam = playerTeam;
@@ -24,15 +31,23 @@ public class ScoreboardController : MonoBehaviour
 
     public void RemovePlayer(int playerId)
     {
-        if (playerScores.ContainsKey(playerId))
+        if (playerScores != null)
         {
-            Destroy(playerScores[playerId].gameObject);
-            playerScores.Remove(playerId);
+            if (playerScores.ContainsKey(playerId))
+            {
+                Destroy(playerScores[playerId].gameObject);
+                playerScores.Remove(playerId);
+            }
         }
     }
 
     public void UpdatePlayerTeam(int playerId, Team newTeam)
     {
+        if (playerScores == null)
+        {
+            playerScores = new Dictionary<int, PlayerScoreController>();
+        }
+
         if (!playerScores.ContainsKey(playerId))
         {
             // Add the player if they don't already exist
@@ -44,6 +59,11 @@ public class ScoreboardController : MonoBehaviour
 
     public void UpdatePlayerDeaths(int playerId, int newDeathsValue)
     {
+        if (playerScores == null)
+        {
+            playerScores = new Dictionary<int, PlayerScoreController>();
+        }
+
         if (!playerScores.ContainsKey(playerId))
         {
             // Add the player if they don't already exist
@@ -55,6 +75,11 @@ public class ScoreboardController : MonoBehaviour
 
     public void UpdatePlayerKills(int playerId, int newKillsValue)
     {
+        if (playerScores == null)
+        {
+            playerScores = new Dictionary<int, PlayerScoreController>();
+        }
+
         if (!playerScores.ContainsKey(playerId))
         {
             // Add the player if they don't already exist
@@ -66,6 +91,11 @@ public class ScoreboardController : MonoBehaviour
 
     public void UpdatePlayerName(int playerId, string newName)
     {
+        if (playerScores == null)
+        {
+            playerScores = new Dictionary<int, PlayerScoreController>();
+        }
+
         if (!playerScores.ContainsKey(playerId))
         {
             // Add the player if they don't already exist
@@ -100,6 +130,9 @@ public class ScoreboardController : MonoBehaviour
 
     private void Awake()
     {
-        playerScores = new Dictionary<int, PlayerScoreController>();
+        if (playerScores == null)
+        {
+            playerScores = new Dictionary<int, PlayerScoreController>();
+        }
     }
 }

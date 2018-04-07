@@ -1200,7 +1200,7 @@ MonoBehaviour:
   ScoreToWin: 5
   FirePosition: {fileID: 4233103286177110}
   ShotEffectsManager: {fileID: 114315445224892190}
-  CurrentWeapon: {fileID: 0}
+  CurrentWeapon: {fileID: 114451481814627314}
 --- !u!114 &114766961772631140
 MonoBehaviour:
   m_ObjectHideFlags: 1

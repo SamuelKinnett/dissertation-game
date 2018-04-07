@@ -1,7 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+
+using UnityEngine;
 using UnityEngine.Networking;
 
 using Newtonsoft.Json;
+
+using Assets.Scripts.Extensions;
 
 public class PlayerShooting : NetworkBehaviour
 {
@@ -74,10 +78,10 @@ public class PlayerShooting : NetworkBehaviour
                 int shotId =
                     DatabaseManager.Instance.AddNewShot(
                         player.PlayerId,
-                        JsonConvert.SerializeObject(origin),
-                        JsonConvert.SerializeObject(direction),
+                        JsonConvert.SerializeObject(origin.ToTuple()),
+                        JsonConvert.SerializeObject(direction.ToTuple()),
                         enemyPlayer.PlayerId,
-                        JsonConvert.SerializeObject(enemyPlayer.transform.position));
+                        JsonConvert.SerializeObject(enemyPlayer.transform.position.ToTuple()));
 
                 if (enemyHealth.TakeDamage(CurrentWeapon.Damage))
                 {
@@ -100,8 +104,8 @@ public class PlayerShooting : NetworkBehaviour
             // Log the shot to the database
             DatabaseManager.Instance.AddNewShot(
                 player.PlayerId,
-                JsonConvert.SerializeObject(origin),
-                JsonConvert.SerializeObject(direction));
+                JsonConvert.SerializeObject(origin.ToTuple()),
+                JsonConvert.SerializeObject(direction.ToTuple()));
         }
 
         RpcProcessShotEffects(result, hit.point, hit.normal);
@@ -131,7 +135,11 @@ public class PlayerShooting : NetworkBehaviour
     private void OnKillsChanged(int newScore)
     {
         kills = newScore;
-        PlayerCanvasController.Instance.UpdatePlayerKillsOnScoreboard(player, kills);
+
+        if (!isServer)
+        {
+            PlayerCanvasController.Instance.UpdatePlayerKillsOnScoreboard(player, kills);
+        }
 
         if (isLocalPlayer)
         {

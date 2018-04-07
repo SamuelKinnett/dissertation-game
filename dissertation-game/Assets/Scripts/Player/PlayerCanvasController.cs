@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.Player.Enums;
+﻿using System.Collections.Generic;
+
+using Assets.Scripts.Player.Enums;
 using Assets.Scripts.UI;
 using UnityEngine;
 using UnityEngine.UI;

@@ -30,7 +30,7 @@ namespace Prototype.NetworkLobby
         [SyncVar(hook = "OnPlayerTeamChanged")]
         public Team PlayerTeam = Team.Random;
         [SyncVar]
-        public int PlayerId;
+        public int PlayerId = -1;
 
         public Color OddRowColor = new Color(250.0f / 255.0f, 250.0f / 255.0f, 250.0f / 255.0f, 1.0f);
         public Color EvenRowColor = new Color(180.0f / 255.0f, 180.0f / 255.0f, 180.0f / 255.0f, 1.0f);
@@ -119,7 +119,8 @@ namespace Prototype.NetworkLobby
                 CmdNameChanged("Player" + (LobbyPlayerList._instance.playerListContentTransform.childCount-1));
 
             // Add this player to the database on the server
-            CmdAddPlayerToDatabse(SystemInfo.deviceUniqueIdentifier);
+            // TODO: Replace the testing string with an actual identifier
+            CmdAddPlayerToDatabse(System.IO.Path.GetRandomFileName().Replace(".", ""));
 
             //we switch from simple name display to name input
             teamButton.interactable = true;
