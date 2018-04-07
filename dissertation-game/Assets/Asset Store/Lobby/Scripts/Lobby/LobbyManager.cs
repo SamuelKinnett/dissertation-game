@@ -359,7 +359,93 @@ namespace Prototype.NetworkLobby
             }
         }
 
-        public void ResolveTeams()
+        public IEnumerator ServerCountdownCoroutine()
+        {
+            float remainingTime = prematchCountdown;
+            int floorTime = Mathf.FloorToInt(remainingTime);
+
+            while (remainingTime > 0)
+            {
+                yield return null;
+
+                remainingTime -= Time.deltaTime;
+                int newFloorTime = Mathf.FloorToInt(remainingTime);
+
+                if (newFloorTime != floorTime)
+                {//to avoid flooding the network of message, we only send a notice to client when the number of plain seconds change.
+                    floorTime = newFloorTime;
+
+                    for (int i = 0; i < lobbySlots.Length; ++i)
+                    {
+                        if (lobbySlots[i] != null)
+                        {//there is maxPlayer slots, so some could be == null, need to test it before accessing!
+                            (lobbySlots[i] as LobbyPlayer).RpcUpdateCountdown(floorTime);
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < lobbySlots.Length; ++i)
+            {
+                if (lobbySlots[i] != null)
+                {
+                    (lobbySlots[i] as LobbyPlayer).RpcUpdateCountdown(0);
+                }
+            }
+
+            ServerChangeScene(playScene);
+        }
+
+        public override void OnLobbyStartServer()
+        {
+            base.OnLobbyStartServer();
+
+            databaseManager = Instantiate(DatabaseManagerPrefab).GetComponent<DatabaseManager>();
+            DontDestroyOnLoad(databaseManager.gameObject);
+
+            DatabaseManager.Instance.InitialiseDatabase();
+            DatabaseManager.Instance.StartNewSession();
+        }
+
+        public override void OnStopServer()
+        {
+            base.OnStopServer();
+
+            Destroy(databaseManager.gameObject);
+        }
+
+        // ----------------- Client callbacks ------------------
+
+        public override void OnClientConnect(NetworkConnection conn)
+        {
+            base.OnClientConnect(conn);
+
+            infoPanel.gameObject.SetActive(false);
+
+            conn.RegisterHandler(MsgKicked, KickedMessageHandler);
+
+            if (!NetworkServer.active)
+            {//only to do on pure client (not self hosting client)
+                ChangeTo(lobbyPanel);
+                backDelegate = StopClientClbk;
+                SetServerInfo("Client", networkAddress);
+            }
+        }
+
+
+        public override void OnClientDisconnect(NetworkConnection conn)
+        {
+            base.OnClientDisconnect(conn);
+            ChangeTo(mainMenuPanel);
+        }
+
+        public override void OnClientError(NetworkConnection conn, int errorCode)
+        {
+            ChangeTo(mainMenuPanel);
+            infoPanel.Display("Cient error : " + (errorCode == 6 ? "timeout" : errorCode.ToString()), "Close", null);
+        }
+
+        private void ResolveTeams()
         {
             int redCount = 0;
             int blueCount = 0;
@@ -415,89 +501,15 @@ namespace Prototype.NetworkLobby
             }
         }
 
-        public IEnumerator ServerCountdownCoroutine()
+        private void AddPlayersToDatabase()
         {
-            float remainingTime = prematchCountdown;
-            int floorTime = Mathf.FloorToInt(remainingTime);
-
-            while (remainingTime > 0)
-            {
-                yield return null;
-
-                remainingTime -= Time.deltaTime;
-                int newFloorTime = Mathf.FloorToInt(remainingTime);
-
-                if (newFloorTime != floorTime)
-                {//to avoid flooding the network of message, we only send a notice to client when the number of plain seconds change.
-                    floorTime = newFloorTime;
-
-                    for (int i = 0; i < lobbySlots.Length; ++i)
-                    {
-                        if (lobbySlots[i] != null)
-                        {//there is maxPlayer slots, so some could be == null, need to test it before accessing!
-                            (lobbySlots[i] as LobbyPlayer).RpcUpdateCountdown(floorTime);
-                        }
-                    }
-                }
-            }
-
             for (int i = 0; i < lobbySlots.Length; ++i)
             {
                 if (lobbySlots[i] != null)
                 {
-                    (lobbySlots[i] as LobbyPlayer).RpcUpdateCountdown(0);
+
                 }
             }
-
-            ServerChangeScene(playScene);
-        }
-
-        public override void OnLobbyStartServer()
-        {
-            base.OnLobbyStartServer();
-
-            databaseManager = Instantiate(DatabaseManagerPrefab).GetComponent<DatabaseManager>();
-            DontDestroyOnLoad(databaseManager.gameObject);
-
-            DatabaseManager.Instance.StartNewSession();
-        }
-
-        public override void OnStopServer()
-        {
-            base.OnStopServer();
-
-            Destroy(databaseManager.gameObject);
-        }
-
-        // ----------------- Client callbacks ------------------
-
-        public override void OnClientConnect(NetworkConnection conn)
-        {
-            base.OnClientConnect(conn);
-
-            infoPanel.gameObject.SetActive(false);
-
-            conn.RegisterHandler(MsgKicked, KickedMessageHandler);
-
-            if (!NetworkServer.active)
-            {//only to do on pure client (not self hosting client)
-                ChangeTo(lobbyPanel);
-                backDelegate = StopClientClbk;
-                SetServerInfo("Client", networkAddress);
-            }
-        }
-
-
-        public override void OnClientDisconnect(NetworkConnection conn)
-        {
-            base.OnClientDisconnect(conn);
-            ChangeTo(mainMenuPanel);
-        }
-
-        public override void OnClientError(NetworkConnection conn, int errorCode)
-        {
-            ChangeTo(mainMenuPanel);
-            infoPanel.Display("Cient error : " + (errorCode == 6 ? "timeout" : errorCode.ToString()), "Close", null);
         }
     }
 }

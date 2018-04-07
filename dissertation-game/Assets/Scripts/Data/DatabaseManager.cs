@@ -18,6 +18,16 @@ public class DatabaseManager : NetworkBehaviour
     private int currentSessionId;
     private int currentGameId;
 
+    public void InitialiseDatabase()
+    {
+        var connectionString = new SQLiteConnectionStringBuilder();
+        connectionString.DataSource = $"{Application.streamingAssetsPath}/Database/Database.db";
+        connectionString.ForeignKeys = true;
+        connectionString.Version = 3;
+
+        databaseConnection = new SQLiteConnection(connectionString.ToString());
+    }
+
     /// <summary>
     /// Called when starting a new testing session. Inserts a new row into the
     /// Sessions table and updates the current session ID variable.
@@ -382,35 +392,19 @@ public class DatabaseManager : NetworkBehaviour
         }
     }
 
-    // Use this for initialization
-    private void Start()
-    {
-        currentSessionId = -1;
-        currentGameId = -1;
-
-        InitialiseDatabase();
-    }
-
     // Ensure there is only one DatabaseManager
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+
+            currentSessionId = -1;
+            currentGameId = -1;
         }
         else if (Instance != this)
         {
             Destroy(gameObject);
         }
-    }
-
-    private void InitialiseDatabase()
-    {
-        var connectionString = new SQLiteConnectionStringBuilder();
-        connectionString.DataSource = $"{Application.dataPath}\\Database\\Database.db";
-        connectionString.ForeignKeys = true;
-        connectionString.Version = 3;
-
-        databaseConnection = new SQLiteConnection(connectionString.ToString());
     }
 }

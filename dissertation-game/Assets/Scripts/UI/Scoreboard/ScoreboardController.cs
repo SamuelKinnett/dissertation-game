@@ -12,12 +12,6 @@ public class ScoreboardController : MonoBehaviour
 
     private Dictionary<int, PlayerScoreController> playerScores;
 
-    // Use this for initialization
-    void Start()
-    {
-        playerScores = new Dictionary<int, PlayerScoreController>();
-    }
-
     public void AddPlayer(int playerId, Team playerTeam = Team.Random)
     {
         if (!playerScores.ContainsKey(playerId))
@@ -102,5 +96,10 @@ public class ScoreboardController : MonoBehaviour
         {
             playerScores[currentPlayerScoreIndex].transform.SetSiblingIndex(currentPlayerScoreIndex + 1);
         }
+    }
+
+    private void Awake()
+    {
+        playerScores = new Dictionary<int, PlayerScoreController>();
     }
 }

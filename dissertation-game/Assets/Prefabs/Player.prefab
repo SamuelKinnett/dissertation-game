@@ -875,6 +875,8 @@ MonoBehaviour:
   PlayerName: 
   PlayerTeam: 0
   IsCapturing: 0
+  Deaths: 0
+  PlayerId: 0
   mapController: {fileID: 0}
   playerCapsule: {fileID: 1512339050930144}
   onToggleShared:
@@ -1195,10 +1197,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8958c33348e60354090734ba3e3352e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scoreToWin: 2
-  firePosition: {fileID: 4233103286177110}
-  shotEffectsManager: {fileID: 114315445224892190}
-  currentWeapon: {fileID: 114451481814627314}
+  ScoreToWin: 5
+  FirePosition: {fileID: 4233103286177110}
+  ShotEffectsManager: {fileID: 114315445224892190}
+  CurrentWeapon: {fileID: 0}
 --- !u!114 &114766961772631140
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1354,7 +1356,7 @@ ParticleSystem:
   moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 2
-  randomSeed: 589928436
+  randomSeed: -1736392011
   InitialModule:
     serializedVersion: 3
     enabled: 1
@@ -4742,7 +4744,7 @@ ParticleSystem:
   moveWithTransform: 0
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 2
-  randomSeed: 1742144353
+  randomSeed: 1215368826
   InitialModule:
     serializedVersion: 3
     enabled: 1
@@ -8100,7 +8102,7 @@ ParticleSystem:
   moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 2
-  randomSeed: 65892062
+  randomSeed: -265937786
   InitialModule:
     serializedVersion: 3
     enabled: 1
