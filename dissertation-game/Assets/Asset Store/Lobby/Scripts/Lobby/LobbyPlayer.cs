@@ -120,7 +120,7 @@ namespace Prototype.NetworkLobby
 
             // Add this player to the database on the server
             // TODO: Replace the testing string with an actual identifier
-            CmdAddPlayerToDatabse(System.IO.Path.GetRandomFileName().Replace(".", ""));
+            CmdAddPlayerToDatabase(PlayerData.Instance.Name, PlayerData.Instance.EmailAddress, System.IO.Path.GetRandomFileName().Replace(".", ""));
 
             //we switch from simple name display to name input
             teamButton.interactable = true;
@@ -282,7 +282,7 @@ namespace Prototype.NetworkLobby
         }
 
         [Command]
-        public void CmdAddPlayerToDatabse(string deviceId)
+        public void CmdAddPlayerToDatabase(string name, string emailAddress, string deviceId)
         {
             PlayerId = DatabaseManager.Instance.AddPlayer(PlayerName, deviceId);
         }
