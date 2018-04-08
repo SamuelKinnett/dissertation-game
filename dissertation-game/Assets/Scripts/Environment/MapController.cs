@@ -44,6 +44,13 @@ public class MapController : NetworkBehaviour
     // The capture point prefab
     public GameObject capturePointPrefab;
 
+    // Reference to the main camera so it can be positioned in the centre of 
+    // the map.
+    public Camera MainCamera;
+
+    // This controller generates some nice surrounding terrain around the map
+    public BorderTerrainController borderTerrainController;
+
     // This SyncList stores the tuples that form the genotype
     private SyncListGeneTuple currentGenes = new SyncListGeneTuple();
 
@@ -319,12 +326,16 @@ public class MapController : NetworkBehaviour
         mapChunks = new List<MapChunkController>();
         InstantiateChunks();
 
+        borderTerrainController.GenerateTerrain((int)mapDimensions.x / 2, (int)mapDimensions.z / 2, (wallHeight - 1) * 2);
+
         capturePoint = capturePointPrefab.GetComponent<CapturePointController>();
 
         redTeamSpawnPositions = new List<Vector3>();
         blueTeamSpawnPositions = new List<Vector3>();
 
         mapUpdateNeeded = false;
+
+        MainCamera.transform.position = new Vector3(mapDimensions.x / 2, MainCamera.transform.position.y, mapDimensions.z / 2);
 
         if (isServer)
         {
@@ -359,6 +370,7 @@ public class MapController : NetworkBehaviour
 
             // TODO: Move this into a game manager class
             GameTimeManager.Instance.SetGameTimerPaused(false);
+            PlayerCanvasController.Instance.SetHidePlayerSpecificElements(true);
 
             currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
             mapUpdateNeeded = true;

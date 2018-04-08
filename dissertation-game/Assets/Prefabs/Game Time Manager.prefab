@@ -86,6 +86,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GameLength: 900
   RequiredHoldTime: 180
+  Tolerance: 0.5
   GameTimeRemaining: 0
   RedTeamCaptureTimeRemaining: 0
   BlueTeamCaptureTimeRemaining: 0
+  RedTeamCaptureTimerPaused: 0
+  GameTimerPaused: 0
+  BlueTeamCaptureTimerPaused: 0

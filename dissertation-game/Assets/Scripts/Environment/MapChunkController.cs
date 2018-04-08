@@ -28,8 +28,6 @@ public class MapChunkController : NetworkBehaviour
 	private List<Vector2> newUV;
 
 	private float textureUnit = 0.25f;
-	private Vector2 textureWall = new Vector2(1, 0);
-	private Vector2 textureFloor = new Vector2(0, 1);
 
 	private int faceCount;
 

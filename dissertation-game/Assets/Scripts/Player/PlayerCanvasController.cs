@@ -25,6 +25,10 @@ public class PlayerCanvasController : MonoBehaviour
     public Slider BlueTeamCapturePercentageSlider;
 
     public ScoreboardController ScoreboardController;
+    public LoadingScreenController LoadingScreenController;
+
+    // Used to force show the scoreboard when the game is over
+    public bool ShowScoreboard;
 
     //Ensure there is only one PlayerCanvasController
     void Awake()
@@ -89,6 +93,17 @@ public class PlayerCanvasController : MonoBehaviour
         if (!DeathAudio.isPlaying)
         {
             DeathAudio.Play();
+        }
+    }
+
+    /// <summary>
+    /// Called when the player is loaded in, destroys the loading screen.
+    /// </summary>
+    public void PlayerLoaded()
+    {
+        if (LoadingScreenController != null)
+        {
+            LoadingScreenController.DestroyLoadingScreen();
         }
     }
 
@@ -170,6 +185,14 @@ public class PlayerCanvasController : MonoBehaviour
     public void UpdatePlayerTeamOnScoreboard(Player player)
     {
         ScoreboardController.UpdatePlayerTeam(player.PlayerId, player.PlayerTeam);
+    }
+
+    public void SetHidePlayerSpecificElements(bool isHidden)
+    {
+        Crosshair.gameObject.SetActive(!isHidden);
+        HealthValue.gameObject.SetActive(!isHidden);
+        ScoreValue.gameObject.SetActive(!isHidden);
+        LoadingScreenController.gameObject.SetActive(!isHidden);
     }
 
     /// <summary>

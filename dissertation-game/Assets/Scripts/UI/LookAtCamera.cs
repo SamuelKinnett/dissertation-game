@@ -15,6 +15,12 @@ public class LookAtCamera : MonoBehaviour
 	// Update after all other updates have completed
 	void LateUpdate()
 	{
+        // Handle camera switching when respawning etc.
+        if (Camera.main.transform != mainCameraPosition)
+        {
+            mainCameraPosition = Camera.main.transform;
+        }
+
 		if (mainCameraPosition != null) {
 			transform.rotation = Quaternion.LookRotation(transform.position - mainCameraPosition.position);
 		}

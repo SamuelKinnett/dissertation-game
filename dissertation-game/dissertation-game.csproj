@@ -12,16 +12,13 @@
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectGenerator>VSTU</UnityProjectGenerator>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2017.3.1f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
@@ -290,6 +287,12 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>Assets/packages/Newtonsoft.Json.11.0.1/lib/net45/Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Data.Sqlite">
+      <HintPath>Assets/Plugins/Mono.Data.Sqlite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data">
+      <HintPath>Assets/Plugins/System.Data.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.Advertisements">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.3/UnityEngine.Advertisements.dll</HintPath>
     </Reference>
@@ -310,12 +313,6 @@
     </Reference>
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>C:/Users/kense/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.10/UnityEngine.StandardEvents.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data">
-      <HintPath>Assets/Plugins/System.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Data.Sqlite">
-      <HintPath>Assets/Plugins/Mono.Data.Sqlite.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -385,6 +382,7 @@
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointCircuit.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointProgressTracker.cs" />
     <Compile Include="Assets\Scripts\Data\DatabaseManager.cs" />
+    <Compile Include="Assets\Scripts\Environment\BorderTerrainController.cs" />
     <Compile Include="Assets\Scripts\Environment\CapturePointController.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\BlockType.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\GameType.cs" />
@@ -408,12 +406,13 @@
     <Compile Include="Assets\Scripts\Time\Extensions\DateTimeExtensions.cs" />
     <Compile Include="Assets\Scripts\Time\GameTimeManager.cs" />
     <Compile Include="Assets\Scripts\UI\BriefingController.cs" />
+    <Compile Include="Assets\Scripts\UI\HUD\LoadingScreenController.cs" />
+    <Compile Include="Assets\Scripts\UI\HUD\Scoreboard\PlayerScoreController.cs" />
+    <Compile Include="Assets\Scripts\UI\HUD\Scoreboard\ScoreboardController.cs" />
+    <Compile Include="Assets\Scripts\UI\HUD\StaticColours.cs" />
+    <Compile Include="Assets\Scripts\UI\HUD\UIFader.cs" />
     <Compile Include="Assets\Scripts\UI\LookAtCamera.cs" />
     <Compile Include="Assets\Scripts\UI\MainMenuController.cs" />
-    <Compile Include="Assets\Scripts\UI\Scoreboard\PlayerScoreController.cs" />
-    <Compile Include="Assets\Scripts\UI\Scoreboard\ScoreboardController.cs" />
-    <Compile Include="Assets\Scripts\UI\StaticColours.cs" />
-    <Compile Include="Assets\Scripts\UI\UIFader.cs" />
     <Compile Include="Assets\Scripts\Weapons\Abstract\Weapon.cs" />
     <Compile Include="Assets\Scripts\Weapons\Concrete\Pistol.cs" />
     <Compile Include="Assets\Scripts\Weapons\Enums\WeaponState.cs" />
