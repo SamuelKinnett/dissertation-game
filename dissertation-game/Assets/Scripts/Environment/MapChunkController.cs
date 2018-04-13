@@ -5,16 +5,16 @@ using UnityEngine.Networking;
 
 public class MapChunkController : NetworkBehaviour
 {
-	public MeshFilter MeshFilter;
+    public MeshFilter MeshFilter;
     public MeshFilter MeshFilterPreview;
-	public MeshCollider MeshCollider;
+    public MeshCollider MeshCollider;
     public MeshRenderer MeshRendererPreview;
 
-	public bool ChunkUpdated;
+    public bool ChunkUpdated;
     public bool ChunkPreviewUpdated;
     public Vector2 textureMapDimensions;
 
-	private Mesh mesh;
+    private Mesh mesh;
     private Mesh previewMesh;
 
     private bool previewMeshFlipped;
@@ -23,114 +23,125 @@ public class MapChunkController : NetworkBehaviour
     // When this timer reaches zero, re-generate the actual mesh and clear the preview mesh
     private float currentTimeUntilRegenerateMesh;
 
-	private List<Vector3> newVertices;
-	private List<int> newTriangles;
-	private List<Vector2> newUV;
+    private List<Vector3> newVertices;
+    private List<int> newTriangles;
+    private List<Vector2> newUV;
 
-	private float textureUnit = 0.25f;
+    private float textureUnit = 0.25f;
 
-	private int faceCount;
+    private int faceCount;
 
-	private int chunkX;
-	private int chunkY;
-	private int chunkZ;
-	private int chunkWidth;
-	private int chunkHeight;
-	private int chunkLength;
+    private int chunkX;
+    private int chunkY;
+    private int chunkZ;
+    private int chunkWidth;
+    private int chunkHeight;
+    private int chunkLength;
 
     private bool initialised;
-	private MapController mapController;
+    private MapController mapController;
 
-	public void Initialise(
-		int chunkX,
-		int chunkY,
-		int chunkZ,
-		int chunkWidth,
-		int chunkHeight,
-		int chunkLength)
-	{
-		this.chunkX = chunkX;
-		this.chunkY = chunkY;
-		this.chunkZ = chunkZ;
-		this.chunkWidth = chunkWidth;
-		this.chunkHeight = chunkHeight;
-		this.chunkLength = chunkLength;
+    public void Initialise(
+        int chunkX,
+        int chunkY,
+        int chunkZ,
+        int chunkWidth,
+        int chunkHeight,
+        int chunkLength)
+    {
+        this.chunkX = chunkX;
+        this.chunkY = chunkY;
+        this.chunkZ = chunkZ;
+        this.chunkWidth = chunkWidth;
+        this.chunkHeight = chunkHeight;
+        this.chunkLength = chunkLength;
 
-		mapController = this.GetComponentInParent<MapController>();
+        mapController = this.GetComponentInParent<MapController>();
 
-		initialised = true;
-	}
+        initialised = true;
+    }
 
-	public void GenerateMesh(float previewTime, bool isPreview = true)
-	{
-		for (int x = chunkX; x < chunkX + chunkWidth; ++x) {
-			for (int y = chunkY; y < chunkY + chunkHeight; ++y) {
-				for (int z = chunkZ; z < chunkZ + chunkLength; ++z) {
-					byte curBlock = mapController.GetBlock(x, y, z);
+    public void GenerateMesh(float previewTime, bool isPreview = true)
+    {
+        for (int x = chunkX; x < chunkX + chunkWidth; ++x)
+        {
+            for (int y = chunkY; y < chunkY + chunkHeight; ++y)
+            {
+                for (int z = chunkZ; z < chunkZ + chunkLength; ++z)
+                {
+                    byte curBlock = mapController.GetBlock(x, y, z);
 
-					// If this block is solid
-					if (curBlock > 0) {
-						// Compare the block to all of its neighbours. Any side that faces air should
-						// have a face rendered.
+                    // If this block is solid
+                    if (curBlock > 0)
+                    {
+                        // Compare the block to all of its neighbours. Any 
+                        // side that faces air should have a face rendered.
 
-						if (mapController.GetBlock(x, y + 1, z) == 0) {
-							CreateCubeTopFace(x, y, z, curBlock);
-						}
+                        if (mapController.GetBlock(x, y + 1, z) == 0)
+                        {
+                            CreateCubeTopFace(x, y, z, curBlock);
+                        }
 
-						if (mapController.GetBlock(x, y, z + 1) == 0) {
-							CreateCubeNorthFace(x, y, z, curBlock);
-						}
+                        if (mapController.GetBlock(x, y, z + 1) == 0)
+                        {
+                            CreateCubeNorthFace(x, y, z, curBlock);
+                        }
 
-						if (mapController.GetBlock(x + 1, y, z) == 0) {
-							CreateCubeEastFace(x, y, z, curBlock);
-						}
+                        if (mapController.GetBlock(x + 1, y, z) == 0)
+                        {
+                            CreateCubeEastFace(x, y, z, curBlock);
+                        }
 
-						if (mapController.GetBlock(x, y, z - 1) == 0) {
-							CreateCubeSouthFace(x, y, z, curBlock);
-						}
+                        if (mapController.GetBlock(x, y, z - 1) == 0)
+                        {
+                            CreateCubeSouthFace(x, y, z, curBlock);
+                        }
 
-						if (mapController.GetBlock(x - 1, y, z) == 0) {
-							CreateCubeWestFace(x, y, z, curBlock);
-						}
+                        if (mapController.GetBlock(x - 1, y, z) == 0)
+                        {
+                            CreateCubeWestFace(x, y, z, curBlock);
+                        }
 
-						if (mapController.GetBlock(x, y - 1, z) == 0) {
-							CreateCubeBottomFace(x, y, z, curBlock);
-						}
-					}
-				}
-			}
-		}
+                        if (mapController.GetBlock(x, y - 1, z) == 0)
+                        {
+                            CreateCubeBottomFace(x, y, z, curBlock);
+                        }
+                    }
+                }
+            }
+        }
 
-		UpdateMesh(isPreview);
+        UpdateMesh(isPreview);
         timeUntilRegenerateMesh = previewTime;
         currentTimeUntilRegenerateMesh = previewTime;
-	}
+    }
 
-	/// <summary>
-	/// Returns true if the specified co-ordinate is contained within this chunk	
-	/// </summary>
-	/// <param name="x">The x coordinate.</param>
-	/// <param name="y">The y coordinate.</param>
-	/// <param name="z">The z coordinate.</param>
-	public bool Contains(int x, int y, int z)
-	{
-		var positionOutsideOfChunk = 
-			(x >= chunkX + chunkWidth ||
-			x < chunkX ||
-			y >= chunkY + chunkHeight ||
-			y < chunkY ||
-			z >= chunkZ + chunkLength ||
-			z < chunkZ);
+    /// <summary>
+    /// Returns true if the specified co-ordinate is contained within this chunk
+    /// </summary>
+    /// <param name="x">The x coordinate.</param>
+    /// <param name="y">The y coordinate.</param>
+    /// <param name="z">The z coordinate.</param>
+    public bool Contains(int x, int y, int z)
+    {
+        var positionOutsideOfChunk =
+            (x >= chunkX + chunkWidth ||
+            x < chunkX ||
+            y >= chunkY + chunkHeight ||
+            y < chunkY ||
+            z >= chunkZ + chunkLength ||
+            z < chunkZ);
 
-		return !positionOutsideOfChunk;
-	}
+        return !positionOutsideOfChunk;
+    }
 
     private void Update()
-	{
-		if (ChunkUpdated) {
-			GenerateMesh(0.0f, false);
+    {
+        if (ChunkUpdated)
+        {
+            GenerateMesh(0.0f, false);
             ChunkUpdated = false;
-		}
+        }
 
         if (currentTimeUntilRegenerateMesh > 0)
         {
@@ -144,22 +155,22 @@ public class MapChunkController : NetworkBehaviour
                 GenerateMesh(0.0f, false);
             }
         }
-	}
+    }
 
-	private void Awake()
-	{
-		initialised = false;
+    private void Awake()
+    {
+        initialised = false;
 
-		mesh = MeshFilter.mesh;
+        mesh = MeshFilter.mesh;
         previewMesh = MeshFilterPreview.mesh;
 
-		newVertices = new List<Vector3>();
-		newTriangles = new List<int>();
-		newUV = new List<Vector2>();
-	}
+        newVertices = new List<Vector3>();
+        newTriangles = new List<int>();
+        newUV = new List<Vector2>();
+    }
 
-	private void UpdateMesh(bool isPreview)
-	{
+    private void UpdateMesh(bool isPreview)
+    {
         if (isPreview)
         {
             // Clear the preview mesh and set the vertices, UVs and triangles
@@ -173,6 +184,10 @@ public class MapChunkController : NetworkBehaviour
         }
         else
         {
+
+            // Move any players that would be inside the geometry otherwise
+            MovePlayersToNearestSafeTiles();
+
             // Clear the mesh and set the vertices, UVs and triangles
             mesh.Clear();
             mesh.SetVertices(newVertices);
@@ -190,105 +205,105 @@ public class MapChunkController : NetworkBehaviour
             previewMeshFlipped = false;
         }
 
-		// Clear the buffers
-		newVertices.Clear();
-		newUV.Clear();
-		newTriangles.Clear();
+        // Clear the buffers
+        newVertices.Clear();
+        newUV.Clear();
+        newTriangles.Clear();
 
-		// Reset the face count
-		faceCount = 0;
-	}
+        // Reset the face count
+        faceCount = 0;
+    }
 
-	private void CreateCubeTopFace(int x, int y, int z, byte block)
-	{
-		// Add the new vertices
-		newVertices.Add(new Vector3(x, y, z));
-		newVertices.Add(new Vector3(x, y, z + 1));
-		newVertices.Add(new Vector3(x + 1, y, z + 1));
-		newVertices.Add(new Vector3(x + 1, y, z));
+    private void CreateCubeTopFace(int x, int y, int z, byte block)
+    {
+        // Add the new vertices
+        newVertices.Add(new Vector3(x, y, z));
+        newVertices.Add(new Vector3(x, y, z + 1));
+        newVertices.Add(new Vector3(x + 1, y, z + 1));
+        newVertices.Add(new Vector3(x + 1, y, z));
 
-		ApplyTextureToFace(block - 1);
-	}
+        ApplyTextureToFace(block - 1);
+    }
 
-	private void CreateCubeNorthFace(int x, int y, int z, byte block)
-	{
-		// Add the new vertices
-		newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
-		newVertices.Add(new Vector3(x + 1, y, z + 1));
-		newVertices.Add(new Vector3(x, y, z + 1));
-		newVertices.Add(new Vector3(x, y - 1, z + 1));
+    private void CreateCubeNorthFace(int x, int y, int z, byte block)
+    {
+        // Add the new vertices
+        newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
+        newVertices.Add(new Vector3(x + 1, y, z + 1));
+        newVertices.Add(new Vector3(x, y, z + 1));
+        newVertices.Add(new Vector3(x, y - 1, z + 1));
 
-		ApplyTextureToFace(block - 1);
-	}
+        ApplyTextureToFace(block - 1);
+    }
 
-	private void CreateCubeEastFace(int x, int y, int z, byte block)
-	{
-		// Add the new vertices
-		newVertices.Add(new Vector3(x + 1, y - 1, z));
-		newVertices.Add(new Vector3(x + 1, y, z));
-		newVertices.Add(new Vector3(x + 1, y, z + 1));
-		newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
+    private void CreateCubeEastFace(int x, int y, int z, byte block)
+    {
+        // Add the new vertices
+        newVertices.Add(new Vector3(x + 1, y - 1, z));
+        newVertices.Add(new Vector3(x + 1, y, z));
+        newVertices.Add(new Vector3(x + 1, y, z + 1));
+        newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
 
-		ApplyTextureToFace(block - 1);
-	}
+        ApplyTextureToFace(block - 1);
+    }
 
-	private void CreateCubeSouthFace(int x, int y, int z, byte block)
-	{
-		// Add the new vertices
-		newVertices.Add(new Vector3(x, y - 1, z));
-		newVertices.Add(new Vector3(x, y, z));
-		newVertices.Add(new Vector3(x + 1, y, z));
-		newVertices.Add(new Vector3(x + 1, y - 1, z));
+    private void CreateCubeSouthFace(int x, int y, int z, byte block)
+    {
+        // Add the new vertices
+        newVertices.Add(new Vector3(x, y - 1, z));
+        newVertices.Add(new Vector3(x, y, z));
+        newVertices.Add(new Vector3(x + 1, y, z));
+        newVertices.Add(new Vector3(x + 1, y - 1, z));
 
-		ApplyTextureToFace(block - 1);
-	}
+        ApplyTextureToFace(block - 1);
+    }
 
-	private void CreateCubeWestFace(int x, int y, int z, byte block)
-	{
-		// Add the new vertices
-		newVertices.Add(new Vector3(x, y - 1, z + 1));
-		newVertices.Add(new Vector3(x, y, z + 1));
-		newVertices.Add(new Vector3(x, y, z));
-		newVertices.Add(new Vector3(x, y - 1, z));
+    private void CreateCubeWestFace(int x, int y, int z, byte block)
+    {
+        // Add the new vertices
+        newVertices.Add(new Vector3(x, y - 1, z + 1));
+        newVertices.Add(new Vector3(x, y, z + 1));
+        newVertices.Add(new Vector3(x, y, z));
+        newVertices.Add(new Vector3(x, y - 1, z));
 
-		ApplyTextureToFace(block - 1);
-	}
+        ApplyTextureToFace(block - 1);
+    }
 
-	private void CreateCubeBottomFace(int x, int y, int z, byte block)
-	{
-		// Add the new vertices
-		newVertices.Add(new Vector3(x, y - 1, z));
-		newVertices.Add(new Vector3(x + 1, y - 1, z));
-		newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
-		newVertices.Add(new Vector3(x, y - 1, z + 1));
+    private void CreateCubeBottomFace(int x, int y, int z, byte block)
+    {
+        // Add the new vertices
+        newVertices.Add(new Vector3(x, y - 1, z));
+        newVertices.Add(new Vector3(x + 1, y - 1, z));
+        newVertices.Add(new Vector3(x + 1, y - 1, z + 1));
+        newVertices.Add(new Vector3(x, y - 1, z + 1));
 
-		ApplyTextureToFace(block - 1);
-	}
+        ApplyTextureToFace(block - 1);
+    }
 
-	private void ApplyTextureToFace(int textureIndex)
-	{
+    private void ApplyTextureToFace(int textureIndex)
+    {
         var texturePosition = ConvertTextureIndexToTexturePosition(textureIndex);
 
-		// Generate the triangles
-		var offset = faceCount * 4;
+        // Generate the triangles
+        var offset = faceCount * 4;
 
-		newTriangles.Add(offset);		// 1
-		newTriangles.Add(offset + 1); 	// 2
-		newTriangles.Add(offset + 2);	// 3
-		newTriangles.Add(offset);
-		newTriangles.Add(offset + 2);
-		newTriangles.Add(offset + 3);
+        newTriangles.Add(offset);       // 1
+        newTriangles.Add(offset + 1);   // 2
+        newTriangles.Add(offset + 2);   // 3
+        newTriangles.Add(offset);
+        newTriangles.Add(offset + 2);
+        newTriangles.Add(offset + 3);
 
-		var xOrigin = textureUnit * texturePosition.x;
-		var yOrigin = textureUnit * texturePosition.y;
+        var xOrigin = textureUnit * texturePosition.x;
+        var yOrigin = textureUnit * texturePosition.y;
 
-		newUV.Add(new Vector2(xOrigin, yOrigin));
-		newUV.Add(new Vector2(xOrigin, yOrigin + textureUnit));
-		newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin + textureUnit));
-		newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin));
+        newUV.Add(new Vector2(xOrigin, yOrigin));
+        newUV.Add(new Vector2(xOrigin, yOrigin + textureUnit));
+        newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin + textureUnit));
+        newUV.Add(new Vector2(xOrigin + textureUnit, yOrigin));
 
-		++faceCount;
-	}
+        ++faceCount;
+    }
 
     // Given a texture index, convert it to the corresponding texture
     // position. Texture indices go from left to right, top to bottom.
@@ -301,5 +316,26 @@ public class MapChunkController : NetworkBehaviour
         var textureY = (textureMapDimensions.y - 1) - (newIndex / (int)textureMapDimensions.y);
 
         return new Vector2(textureX, textureY);
+    }
+
+    private void MovePlayersToNearestSafeTiles()
+    {
+        foreach (var player in Player.players)
+        {
+            var playerTileX = (int)Mathf.Round(player.transform.position.x / 2);
+            var playerTileY = (int)Mathf.Round(player.transform.position.y / 2);
+            var playerTileZ = (int)Mathf.Round(player.transform.position.z / 2);
+
+            Debug.Log($"Checking player {player.PlayerName} at position [{playerTileX}, {playerTileY}, {playerTileZ}]");
+
+            if (Contains(playerTileX, playerTileY, playerTileZ))
+            {
+                Debug.Log("Checking...");
+                if (!mapController.CheckPlayerInSafeTile(player))
+                {
+                    mapController.MovePlayerToNearestSafeTile(player);
+                }
+            }
+        }
     }
 }

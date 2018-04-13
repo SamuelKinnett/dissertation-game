@@ -30,6 +30,7 @@ public class Player : NetworkBehaviour
     [SyncVar]
     public int PlayerId;
 
+    public static List<Player> players = new List<Player>();
 
     public MapController mapController;
     public GameObject playerCapsule;
@@ -40,7 +41,6 @@ public class Player : NetworkBehaviour
     [SerializeField] float respawnTime = 5.0f;
     [SerializeField] Text playerNameText;
 
-    private static List<Player> players = new List<Player>();
 
     private GameObject mainCamera;
     private bool initialised;
@@ -73,6 +73,12 @@ public class Player : NetworkBehaviour
         DisablePlayer();
 
         Invoke("Respawn", respawnTime);
+    }
+
+    [ClientRpc]
+    public void RpcWarpToPosition(Vector3 newPosition)
+    {
+        transform.position = newPosition;
     }
 
     private void Start()
@@ -273,11 +279,5 @@ public class Player : NetworkBehaviour
                 PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\n" + name + " Won.");
             }
         }
-    }
-
-    [ClientRpc]
-    private void RpcWarpToPosition(Vector3 newPosition)
-    {
-        transform.position = newPosition;
     }
 }

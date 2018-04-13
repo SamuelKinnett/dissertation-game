@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Environment.Enums;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -47,8 +48,6 @@ public class BorderTerrainController : MonoBehaviour
         var stepSize = TerrainWidth - 1;
         var range = Mathf.Lerp(MinHeight, MaxHeight, 0.5f);
 
-        Debug.Log($"Map Dimensions: [{TerrainWidth}, {TerrainDepth}]");
-
         while (stepSize > 1)
         {
             Debug.Log($"Step size: {stepSize}");
@@ -56,7 +55,6 @@ public class BorderTerrainController : MonoBehaviour
             {
                 for (int y = 0; y < TerrainDepth - 1; y += stepSize)
                 {
-                    Debug.Log($"Diamond Step: [{x}, {y}]");
                     DiamondStep(x, y, stepSize, range);
                 }
             }
@@ -70,7 +68,6 @@ public class BorderTerrainController : MonoBehaviour
 
                 for (int y = posY; y < TerrainDepth; y += stepSize / 2)
                 {
-                    Debug.Log($"Square Step: [{x}, {y}]");
                     SquareStep(x, y, stepSize, range);
                 }
                 evenRow = !evenRow;
@@ -166,7 +163,7 @@ public class BorderTerrainController : MonoBehaviour
                     newVertices.Add(new Vector3(posX + chunkWidth, heightMap[x + 1, y + 1], posY + chunkHeight));
                     newVertices.Add(new Vector3(posX + chunkWidth, heightMap[x + 1, y], posY));
 
-                    ApplyTextureToFace(0);
+                    ApplyTextureToFace((int)BlockType.Grass - 1);
                 }
             }
         }

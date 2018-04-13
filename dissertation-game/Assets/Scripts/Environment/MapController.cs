@@ -59,6 +59,8 @@ public class MapController : NetworkBehaviour
     // represent different block types.
     private static byte[,,] mapData;
 
+    private TileType[,] currentMapSketch;
+
     private static List<MapChunkController> mapChunks;
 
     private static int wallHeight = 4;
@@ -222,7 +224,8 @@ public class MapController : NetworkBehaviour
             currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
             Debug.Log("Updated current chromosome");
 
-            UpdateMapWithMapSketch(MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2));
+            currentMapSketch = MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2);
+            UpdateMapWithMapSketch(currentMapSketch);
             Debug.Log("Updated map");
         }
     }
@@ -244,12 +247,12 @@ public class MapController : NetworkBehaviour
                     case TileType.Impassable:
                         for (int i = 0; i < wallHeight; ++i)
                         {
-                            SetLargeBlock(curX, i, curY, BlockType.Wall);
+                            SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
                         }
                         break;
 
                     case TileType.Passable:
-                        SetLargeBlock(curX, 0, curY, BlockType.Floor);
+                        SetLargeBlock(curX, 0, curY, BlockType.TileFloor);
                         for (int i = 1; i < wallHeight; ++i)
                         {
                             SetLargeBlock(curX, i, curY, 0);
@@ -275,8 +278,8 @@ public class MapController : NetworkBehaviour
                         break;
 
                     case TileType.Barrier:
-                        SetLargeBlock(curX, 0, curY, BlockType.Wall);
-                        SetLargeBlock(curX, 1, curY, BlockType.Wall);
+                        SetLargeBlock(curX, 0, curY, BlockType.BrickWall2);
+                        SetLargeBlock(curX, 1, curY, BlockType.BrickWall2);
                         for (int i = 2; i < wallHeight; ++i)
                         {
                             SetLargeBlock(curX, i, curY, 0);
@@ -294,7 +297,7 @@ public class MapController : NetworkBehaviour
                     default:
                         for (int i = 0; i < 2; ++i)
                         {
-                            SetLargeBlock(curX, i, curY, BlockType.Wall);
+                            SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
                         }
                         break;
                 }
@@ -316,6 +319,58 @@ public class MapController : NetworkBehaviour
         GenerateMesh();
     }
 
+    [ServerCallback]
+    public void MovePlayerToNearestSafeTile(Player player)
+    {
+        Debug.Log($"Warping player {player.PlayerName}");
+
+        var safeTiles = new List<Vector2>();
+
+        var playerPosition = new Vector2(
+            (int)Mathf.Round(player.transform.position.x / 2),
+            (int)Mathf.Round(player.transform.position.z / 2));
+
+        // Find all empty tiles
+        for (int x = 0; x < (int)mapDimensions.x / 2; ++x)
+        {
+            for (int y = 0; y < (int)mapDimensions.z / 2; ++y)
+            {
+                if (currentMapSketch[x, y] != TileType.Impassable)
+                {
+                    safeTiles.Add(new Vector2(x, y));
+                }
+            }
+        }
+
+        // Find the closest safe tile
+        safeTiles.Sort((tile1, tile2) =>
+        {
+            var distanceToTile1 = (tile1 - playerPosition).magnitude;
+            var distanceToTile2 = (tile2 - playerPosition).magnitude;
+
+            return distanceToTile1.CompareTo(distanceToTile2);
+        });
+
+        var closestTile = safeTiles.First();
+
+        player.RpcWarpToPosition(new Vector3(closestTile.x * 2 + 0.5f, wallHeight * 2 + 0.5f, closestTile.y * 2));
+    }
+
+    public bool CheckPlayerInSafeTile(Player player)
+    {
+        if (isServer)
+        {
+            var playerTileX = (int)Mathf.Round(player.transform.position.x / 2);
+            var playerTileY = (int)Mathf.Round(player.transform.position.z / 2);
+
+            Debug.Log($"Checking player {player.PlayerName} at [{playerTileX}, {playerTileY}] ({currentMapSketch[playerTileX, playerTileY].ToString()})");
+
+            return !(currentMapSketch[playerTileX, playerTileY] == TileType.Impassable);
+        }
+
+        return true;
+    }
+
     // Use this for initialization
     private void Start()
     {
@@ -326,7 +381,7 @@ public class MapController : NetworkBehaviour
         mapChunks = new List<MapChunkController>();
         InstantiateChunks();
 
-        borderTerrainController.GenerateTerrain((int)mapDimensions.x / 2, (int)mapDimensions.z / 2, (wallHeight - 1) * 2);
+        borderTerrainController.GenerateTerrain((int)mapDimensions.x / 2, (int)mapDimensions.z / 2, wallHeight * 2 - 1);
 
         capturePoint = capturePointPrefab.GetComponent<CapturePointController>();
 

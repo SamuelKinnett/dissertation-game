@@ -3,8 +3,12 @@
     public enum BlockType
     {
         Unknown,
-        Wall,
-        Floor,
+        BrickWall,
+        CobbleFloor,
+        BrickFloor,
+        Grass,
+        TileFloor,
+        BrickWall2,
         Team1Spawn,
         Team2Spawn,
         CapturePoint
