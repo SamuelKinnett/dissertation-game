@@ -1,6 +1,7 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Player.Enums;
+using System.Collections;
 using System.Collections.Generic;
-
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -71,14 +72,41 @@ public class GameTimeManager : NetworkBehaviour
             if (!GameTimerPaused)
             {
                 GameTimeRemaining -= Time.deltaTime;
+
+                if (GameTimeRemaining <= 0)
+                {
+                    RedTeamCaptureTimerPaused = true;
+                    BlueTeamCaptureTimerPaused = true;
+
+                    Player.players.First().Won(Team.Random);
+                    DatabaseManager.Instance.FinishGame();
+                }
             }
             if (!RedTeamCaptureTimerPaused)
             {
                 RedTeamCaptureTimeRemaining -= Time.deltaTime;
+
+                if (RedTeamCaptureTimeRemaining <= 0)
+                {
+                    RedTeamCaptureTimeRemaining = 0;
+                    RedTeamCaptureTimerPaused = true;
+
+                    Player.players.First().Won(Team.Red);
+                    DatabaseManager.Instance.FinishGame(GameInstanceData.Instance.RedTeamId);
+                }
             }
             if (!BlueTeamCaptureTimerPaused)
             {
                 BlueTeamCaptureTimeRemaining -= Time.deltaTime;
+
+                if (BlueTeamCaptureTimeRemaining <= 0)
+                {
+                    BlueTeamCaptureTimeRemaining = 0;
+                    BlueTeamCaptureTimerPaused = true;
+
+                    Player.players.First().Won(Team.Blue);
+                    DatabaseManager.Instance.FinishGame(GameInstanceData.Instance.BlueTeamId);
+                }
             }
         }
     }

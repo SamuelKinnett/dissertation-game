@@ -20,5 +20,6 @@ public class GameLobbyHook : LobbyHook
 		gamePlayer.PlayerName = lobbyPlayer.PlayerName;
 		gamePlayer.PlayerTeam = lobbyPlayer.PlayerTeam;
         gamePlayer.PlayerId = lobbyPlayer.PlayerId;
+        gamePlayer.PlayerTeamId = lobbyPlayer.PlayerTeamId;
 	}
 }

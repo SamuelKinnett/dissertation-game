@@ -31,6 +31,8 @@ namespace Prototype.NetworkLobby
         public Team PlayerTeam = Team.Random;
         [SyncVar]
         public int PlayerId = -1;
+        [SyncVar]
+        public int PlayerTeamId = -1;
 
         public Color OddRowColor = new Color(250.0f / 255.0f, 250.0f / 255.0f, 250.0f / 255.0f, 1.0f);
         public Color EvenRowColor = new Color(180.0f / 255.0f, 180.0f / 255.0f, 180.0f / 255.0f, 1.0f);

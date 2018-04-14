@@ -25,6 +25,12 @@ namespace Prototype.NetworkLobby
         [Tooltip("A reference to the DatabaseManager prefab")]
         public GameObject DatabaseManagerPrefab;
 
+        [Tooltip("A reference to the GameInstanceData prefab")]
+        public GameObject GameInstanceDataPrefab;
+
+        [HideInInspector]
+        public GameType gameType;
+
         [Space]
         [Header("UI Reference")]
         public LobbyTopPanel topPanel;
@@ -44,6 +50,7 @@ namespace Prototype.NetworkLobby
         public Text hostInfo;
 
         private DatabaseManager databaseManager;
+        private GameInstanceData gameInstanceData;
 
         //Client numPlayers from NetworkManager is always 0, so we count (throught connect/destroy in LobbyPlayer) the number
         //of players, so that even client know how many player there is.
@@ -355,9 +362,14 @@ namespace Prototype.NetworkLobby
 
             if (allready)
             {
-                DatabaseManager.Instance.StartNewGame(GameType.Procedural);
+                DatabaseManager.Instance.StartNewGame(gameType);
+                GameInstanceData.Instance.GameType = gameType;
+
                 var redTeamId = DatabaseManager.Instance.AddTeam();
                 var blueTeamId = DatabaseManager.Instance.AddTeam();
+
+                GameInstanceData.Instance.RedTeamId = redTeamId;
+                GameInstanceData.Instance.BlueTeamId = blueTeamId;
 
                 ResolvePlayers(redTeamId, blueTeamId);
                 StartCoroutine(ServerCountdownCoroutine());
@@ -408,8 +420,11 @@ namespace Prototype.NetworkLobby
             databaseManager = Instantiate(DatabaseManagerPrefab).GetComponent<DatabaseManager>();
             DontDestroyOnLoad(databaseManager.gameObject);
 
+            gameInstanceData = Instantiate(GameInstanceDataPrefab).GetComponent<GameInstanceData>();
+            DontDestroyOnLoad(gameInstanceData.gameObject);
+
             DatabaseManager.Instance.InitialiseDatabase();
-            DatabaseManager.Instance.StartNewSession();
+            // DatabaseManager.Instance.StartNewSession();
         }
 
         public override void OnStopServer()
@@ -417,6 +432,7 @@ namespace Prototype.NetworkLobby
             base.OnStopServer();
 
             Destroy(databaseManager.gameObject);
+            Destroy(gameInstanceData.gameObject);
         }
 
         // ----------------- Client callbacks ------------------
@@ -479,11 +495,13 @@ namespace Prototype.NetworkLobby
 
                         case Team.Red:
                             DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[i] as LobbyPlayer).PlayerId, redTeamId);
+                            (lobbySlots[i] as LobbyPlayer).PlayerTeamId = redTeamId;
                             ++redCount;
                             break;
 
                         case Team.Blue:
                             DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[i] as LobbyPlayer).PlayerId, blueTeamId);
+                            (lobbySlots[i] as LobbyPlayer).PlayerTeamId = blueTeamId;
                             ++blueCount;
                             break;
                     }
@@ -507,11 +525,13 @@ namespace Prototype.NetworkLobby
                 if (newTeam == Team.Red)
                 {
                     DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[unplacedIndex] as LobbyPlayer).PlayerId, redTeamId);
+                    (lobbySlots[unplacedIndex] as LobbyPlayer).PlayerTeamId = redTeamId;
                     --remainingRed;
                 }
                 else
                 {
                     DatabaseManager.Instance.AddPlayerToTeam((lobbySlots[unplacedIndex] as LobbyPlayer).PlayerId, blueTeamId);
+                    (lobbySlots[unplacedIndex] as LobbyPlayer).PlayerTeamId = blueTeamId;
                     --remainingBlue;
                 }
 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Assets.Scripts.Environment.Enums;
 
 namespace Prototype.NetworkLobby
 {
@@ -52,6 +53,28 @@ namespace Prototype.NetworkLobby
             lobbyManager.backDelegate = lobbyManager.StopServerClbk;
 
             lobbyManager.SetServerInfo("Dedicated Server", lobbyManager.networkAddress);
+        }
+
+        public void OnClickDedicatedControl()
+        {
+            lobbyManager.ChangeTo(null);
+            lobbyManager.StartServer();
+
+            lobbyManager.backDelegate = lobbyManager.StopServerClbk;
+
+            lobbyManager.gameType = GameType.Control;
+            lobbyManager.SetServerInfo("Dedicated Server (Control)", lobbyManager.networkAddress);
+        }
+
+        public void OnClickDedicatedProcedural()
+        {
+            lobbyManager.ChangeTo(null);
+            lobbyManager.StartServer();
+
+            lobbyManager.backDelegate = lobbyManager.StopServerClbk;
+
+            lobbyManager.gameType = GameType.Procedural;
+            lobbyManager.SetServerInfo("Dedicated Server (Procedural)", lobbyManager.networkAddress);
         }
 
         public void OnClickCreateMatchmakingGame()

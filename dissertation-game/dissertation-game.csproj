@@ -382,6 +382,7 @@
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointCircuit.cs" />
     <Compile Include="Assets\Asset Store\Standard Assets\Utility\WaypointProgressTracker.cs" />
     <Compile Include="Assets\Scripts\Data\DatabaseManager.cs" />
+    <Compile Include="Assets\Scripts\Data\GameInstanceData.cs" />
     <Compile Include="Assets\Scripts\Data\PlayerData.cs" />
     <Compile Include="Assets\Scripts\Environment\BorderTerrainController.cs" />
     <Compile Include="Assets\Scripts\Environment\CapturePointController.cs" />

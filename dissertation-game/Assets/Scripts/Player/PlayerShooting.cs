@@ -9,7 +9,6 @@ using Assets.Scripts.Extensions;
 
 public class PlayerShooting : NetworkBehaviour
 {
-    public int ScoreToWin = 5;
     public Transform FirePosition;
     public ShotEffectsManager ShotEffectsManager;
     public Weapon CurrentWeapon;
@@ -29,15 +28,6 @@ public class PlayerShooting : NetworkBehaviour
         {
             canShoot = true;
         }
-    }
-
-    /// <summary>
-    /// Raises the enable event.
-    /// </summary>
-    [ServerCallback]
-    private void OnEnable()
-    {
-        kills = 0;
     }
 
     private void Update()
@@ -83,18 +73,19 @@ public class PlayerShooting : NetworkBehaviour
                         enemyPlayer.PlayerId,
                         JsonConvert.SerializeObject(enemyPlayer.transform.position.ToTuple()));
 
-                if (enemyHealth.TakeDamage(CurrentWeapon.Damage))
+                // Only damage enemies, not team-mates
+                if (enemyPlayer.PlayerTeam != player.PlayerTeam)
                 {
-                    // We've killed an enemy
-                    // Log the kill to the database
-                    DatabaseManager.Instance.AddKill(
-                        player.PlayerId, 
-                        enemyPlayer.PlayerId, 
-                        shotId);
-
-                    if (++kills >= ScoreToWin)
+                    if (enemyHealth.TakeDamage(CurrentWeapon.Damage))
                     {
-                        player.Won();
+                        // We've killed an enemy
+                        // Log the kill to the database
+                        DatabaseManager.Instance.AddKill(
+                            player.PlayerId,
+                            enemyPlayer.PlayerId,
+                            shotId);
+
+                        ++kills;
                     }
                 }
             }

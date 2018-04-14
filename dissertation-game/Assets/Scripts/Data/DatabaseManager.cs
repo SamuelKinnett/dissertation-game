@@ -218,7 +218,7 @@ public class DatabaseManager : NetworkBehaviour
     /// the current game ID variable. If the game wasn't a draw, then it also
     /// creates a new row in the Victories table.
     /// </summary>
-    public void FinishGame(int gameId, int winningTeamId = -1)
+    public void FinishGame(int winningTeamId = -1)
     {
         using (var command = new SqliteCommand(databaseConnection))
         {
@@ -226,7 +226,7 @@ public class DatabaseManager : NetworkBehaviour
 
             // Check that the game exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Games WHERE GameId = @gameid);";
-            command.Parameters.Add(new SqliteParameter("@gameid", gameId));
+            command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
             bool gameExists = Convert.ToBoolean(command.ExecuteScalar());
 
             if (gameExists)
@@ -271,7 +271,7 @@ public class DatabaseManager : NetworkBehaviour
     /// Adds a new capture to the Captures table for the current game and the
     /// provided team.
     /// </summary>
-    public void AddNewCapture(int teamId)
+    public void AddNewCapture(int? teamId)
     {
         if (currentGameId == -1)
         {
@@ -282,21 +282,31 @@ public class DatabaseManager : NetworkBehaviour
         {
             databaseConnection.Open();
 
-            // Check the team exists
-            command.CommandText = "SELECT EXISTS (SELECT 1 FROM Teams WHERE TeamId = @teamid);";
-            command.Parameters.Add(new SqliteParameter("@teamid", teamId));
-            bool teamExists = Convert.ToBoolean(command.ExecuteScalar());
-
-            if (teamExists)
+            if (teamId.HasValue)
             {
-                command.CommandText = "INSERT INTO Captures (GameId, TeamId, Date) VALUES (@gameid, @teamid, @date);";
-                command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
-                command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
-                command.ExecuteNonQuery();
+                // Check the team exists
+                command.CommandText = "SELECT EXISTS (SELECT 1 FROM Teams WHERE TeamId = @teamid);";
+                command.Parameters.Add(new SqliteParameter("@teamid", teamId.Value));
+                bool teamExists = Convert.ToBoolean(command.ExecuteScalar());
+
+                if (teamExists)
+                {
+                    command.CommandText = "INSERT INTO Captures (GameId, TeamId, Date) VALUES (@gameid, @teamid, @date);";
+                    command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+                    command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
+                    command.ExecuteNonQuery();
+                }
+                else
+                {
+                    throw new Exception("The provided team does not exist");
+                }
             }
             else
             {
-                throw new Exception("The provided team does not exist");
+                command.CommandText = "INSERT INTO Captures (GameId, Date) VALUES (@gameid, @date);";
+                command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+                command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
+                command.ExecuteNonQuery();
             }
 
             databaseConnection.Close();

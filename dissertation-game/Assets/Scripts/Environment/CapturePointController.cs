@@ -139,6 +139,7 @@ public class CapturePointController : NetworkBehaviour
                         // The capture point is now unowned
                         currentControllingTeam = Team.Random;
                         GameTimeManager.Instance.SetBlueTeamTimerPaused(true);
+                        DatabaseManager.Instance.AddNewCapture(null);
                     }
                 }
                 else
@@ -151,6 +152,7 @@ public class CapturePointController : NetworkBehaviour
                             // The capture point is now owned by the red team
                             currentControllingTeam = Team.Red;
                             GameTimeManager.Instance.SetRedTeamTimerPaused(false);
+                            DatabaseManager.Instance.AddNewCapture(GameInstanceData.Instance.RedTeamId);
                         }
                     }
                 }
@@ -173,6 +175,7 @@ public class CapturePointController : NetworkBehaviour
                         // The capture point is now unowned
                         currentControllingTeam = Team.Random;
                         GameTimeManager.Instance.SetRedTeamTimerPaused(true);
+                        DatabaseManager.Instance.AddNewCapture(null);
                     }
                 }
                 else
@@ -185,6 +188,7 @@ public class CapturePointController : NetworkBehaviour
                             // The capture point is now owned by the blue team
                             currentControllingTeam = Team.Blue;
                             GameTimeManager.Instance.SetBlueTeamTimerPaused(false);
+                            DatabaseManager.Instance.AddNewCapture(GameInstanceData.Instance.BlueTeamId);
                         }
                     }
                 }

@@ -30,6 +30,9 @@ public class Player : NetworkBehaviour
     [SyncVar]
     public int PlayerId;
 
+    [SyncVar]
+    public int PlayerTeamId;
+
     public static List<Player> players = new List<Player>();
 
     public MapController mapController;
@@ -49,11 +52,11 @@ public class Player : NetworkBehaviour
     /// Announce the winner and return to lobby
     /// </summary>
     [Server]
-    public void Won()
+    public void Won(Team winningTeam)
     {
         foreach (var currentPlayer in players)
         {
-            currentPlayer.RpcGameOver(netId, PlayerName);
+            currentPlayer.RpcGameOver(winningTeam);
         }
 
         Invoke("BackToLobby", 5f);
@@ -260,7 +263,7 @@ public class Player : NetworkBehaviour
     }
 
     [ClientRpc]
-    void RpcGameOver(NetworkInstanceId networkId, string name)
+    void RpcGameOver(Team winningTeam)
     {
         DisablePlayer();
 
@@ -270,13 +273,17 @@ public class Player : NetworkBehaviour
 
         if (isLocalPlayer)
         {
-            if (netId == networkId)
+            if (PlayerTeam == winningTeam)
             {
-                PlayerCanvasController.Instance.WriteGameStatusText("You Won!");
+                PlayerCanvasController.Instance.WriteGameStatusText("Your team Won!");
+            }
+            else if (winningTeam == Team.Random)
+            {
+                PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\nIt's a draw.");
             }
             else
             {
-                PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\n" + name + " Won.");
+                PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\nYour team lost.");
             }
         }
     }

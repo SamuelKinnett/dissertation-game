@@ -305,13 +305,7 @@ public class MapController : NetworkBehaviour
         }
 
         // Update the capture point
-        var capturePointGene = currentGenes.Last();
-        capturePoint.UpdateCapturePoint(
-            new Vector3(
-                (capturePointGene.X + capturePointGene.Z / 2.0f) * 2,
-                10,
-                (capturePointGene.Y + capturePointGene.Z / 2.0f) * 2),
-            new Vector3(capturePointGene.Z * 2, 20, capturePointGene.Z * 2));
+        Invoke("UpdateCapturePoint", previewTime);
 
         redTeamSpawnPositions = newRedTeamSpawnPositions;
         blueTeamSpawnPositions = newBlueTeamSpawnPositions;
@@ -353,7 +347,7 @@ public class MapController : NetworkBehaviour
 
         var closestTile = safeTiles.First();
 
-        player.RpcWarpToPosition(new Vector3(closestTile.x * 2 + 0.5f, wallHeight * 2 + 0.5f, closestTile.y * 2));
+        player.RpcWarpToPosition(new Vector3(closestTile.x * 2 + 1, wallHeight * 2, closestTile.y * 2 + 1));
     }
 
     public bool CheckPlayerInSafeTile(Player player)
@@ -543,6 +537,17 @@ public class MapController : NetworkBehaviour
 
         // Run the genetic algorithm
         geneticAlgorithm.RunAsync(GeneticAlgorithmHelpers.Terminate);
+    }
+
+    private void UpdateCapturePoint()
+    {
+        var capturePointGene = currentGenes.Last();
+        capturePoint.UpdateCapturePoint(
+            new Vector3(
+            (capturePointGene.X + capturePointGene.Z / 2.0f) * 2,
+            10,
+            (capturePointGene.Y + capturePointGene.Z / 2.0f) * 2),
+            new Vector3(capturePointGene.Z * 2, 20, capturePointGene.Z * 2));
     }
 
     #region Callbacks
