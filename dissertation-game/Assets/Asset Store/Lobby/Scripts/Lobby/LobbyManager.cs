@@ -75,7 +75,7 @@ namespace Prototype.NetworkLobby
             _lobbyHooks = GetComponent<Prototype.NetworkLobby.LobbyHook>();
             currentPanel = mainMenuPanel;
 
-            if (DatabaseManager.DoRequiredDatabasesExist())
+            if (DatabaseManager.DoRequiredDatabasesExist() && DatabaseManager.TestConnections())
             {
                 DedicatedServerControlButton.interactable = true;
                 DedicatedServerProceduralButton.interactable = true;
@@ -439,7 +439,7 @@ namespace Prototype.NetworkLobby
             gameInstanceData = Instantiate(GameInstanceDataPrefab).GetComponent<GameInstanceData>();
             DontDestroyOnLoad(gameInstanceData.gameObject);
 
-            DatabaseManager.Instance.InitialiseDatabase();
+            DatabaseManager.Instance.InitialiseDatabases();
             // DatabaseManager.Instance.StartNewSession();
         }
 

@@ -29,7 +29,37 @@ public class DatabaseManager : NetworkBehaviour
         return File.Exists(Application.streamingAssetsPath + gameplayDatabasePath) && File.Exists(Application.streamingAssetsPath + participantInfoDatabasePath);
     }
 
-    public void InitialiseDatabase()
+    public static bool TestConnections()
+    {
+        var connectionString = new SqliteConnectionStringBuilder();
+        connectionString.DataSource = Application.streamingAssetsPath + gameplayDatabasePath;
+        connectionString.Version = 3;
+
+        try
+        {
+            using (var connection = new SqliteConnection(connectionString.ToString()))
+            {
+                connection.Open();
+                connection.Close();
+            }
+
+            connectionString.DataSource = Application.streamingAssetsPath + participantInfoDatabasePath;
+
+            using (var connection = new SqliteConnection(connectionString.ToString()))
+            {
+                connection.Open();
+                connection.Close();
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public void InitialiseDatabases()
     {
         var connectionString = new SqliteConnectionStringBuilder();
         connectionString.DataSource = Application.streamingAssetsPath + gameplayDatabasePath;
