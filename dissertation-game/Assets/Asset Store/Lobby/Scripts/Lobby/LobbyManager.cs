@@ -486,6 +486,7 @@ namespace Prototype.NetworkLobby
         {
             int redCount = 0;
             int blueCount = 0;
+            int playerCount = 0;
             List<int> unplacedIndices = new List<int>();
 
             // Iterate through the current players and find the number on each
@@ -502,6 +503,8 @@ namespace Prototype.NetworkLobby
                     {
                         (lobbySlots[i] as LobbyPlayer).PlayerId = DatabaseManager.Instance.AddPlayer(playerDeviceId);
                     }
+
+                    ++playerCount;
 
                     switch ((lobbySlots[i] as LobbyPlayer).PlayerTeam)
                     {
@@ -526,8 +529,8 @@ namespace Prototype.NetworkLobby
 
             // Calculate how many red or blue players are needed to have a 50
             // 50 split.
-            int remainingRed = Mathf.Abs(lobbySlots.Length / 2 - redCount);
-            int remainingBlue = Mathf.Abs(lobbySlots.Length / 2 - blueCount);
+            int remainingRed = Mathf.Abs(playerCount / 2 - redCount);
+            int remainingBlue = Mathf.Abs(playerCount / 2 - blueCount);
 
             // Place the random players into teams
             foreach (var unplacedIndex in unplacedIndices)

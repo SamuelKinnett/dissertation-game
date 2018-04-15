@@ -125,7 +125,8 @@ namespace Prototype.NetworkLobby
             {
                 var encryptedName = simpleAES.Encrypt(PlayerData.Instance.Name);
                 var encryptedEmail = simpleAES.Encrypt(PlayerData.Instance.EmailAddress);
-                var encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
+                //var encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
+                var encryptedDeviceId = simpleAES.Encrypt(System.IO.Path.GetRandomFileName().Replace(".",""));
 
                 CmdAddPlayerToDatabase(encryptedName, encryptedEmail, encryptedDeviceId);
             }

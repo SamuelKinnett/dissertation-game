@@ -877,7 +877,10 @@ MonoBehaviour:
   IsCapturing: 0
   Deaths: 0
   PlayerId: 0
+  PlayerTeamId: 0
+  HasAnsweredQuestions: 0
   mapController: {fileID: 0}
+  questionController: {fileID: 0}
   playerCapsule: {fileID: 1512339050930144}
   onToggleShared:
     m_PersistentCalls:
@@ -1197,7 +1200,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8958c33348e60354090734ba3e3352e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ScoreToWin: 5
   FirePosition: {fileID: 4233103286177110}
   ShotEffectsManager: {fileID: 114315445224892190}
   CurrentWeapon: {fileID: 114451481814627314}

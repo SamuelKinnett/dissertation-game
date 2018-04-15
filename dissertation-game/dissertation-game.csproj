@@ -416,6 +416,7 @@
     <Compile Include="Assets\Scripts\UI\HUD\UIFader.cs" />
     <Compile Include="Assets\Scripts\UI\LookAtCamera.cs" />
     <Compile Include="Assets\Scripts\UI\MainMenuController.cs" />
+    <Compile Include="Assets\Scripts\UI\QuestionController.cs" />
     <Compile Include="Assets\Scripts\Weapons\Abstract\Weapon.cs" />
     <Compile Include="Assets\Scripts\Weapons\Concrete\Pistol.cs" />
     <Compile Include="Assets\Scripts\Weapons\Enums\WeaponState.cs" />

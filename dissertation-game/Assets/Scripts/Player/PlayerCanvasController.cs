@@ -25,6 +25,7 @@ public class PlayerCanvasController : MonoBehaviour
     public Slider BlueTeamCapturePercentageSlider;
 
     public ScoreboardController ScoreboardController;
+    public QuestionController QuestionController;
     public LoadingScreenController LoadingScreenController;
 
     // Used to force show the scoreboard when the game is over

@@ -16,7 +16,7 @@ public class SimpleAES : IDisposable
     // then sufficiently prevent an attacker from reverse engineering the game,
     // getting the key and then decrypting subsequent playthroughs, since the
     // key will then have changed.
-    private static readonly byte[] key = Convert.FromBase64String("fc9c36aede5d9128463bfbb3f5e5bc8589eddc01ca33a49ea89138ba7d64955dba90a4caf88389204c5cf521");
+    private static readonly byte[] key = Convert.FromBase64String("DV1hnYfomz8yD1Q2pIHavP7ooZ4O7teAQt2qmn0CWwt=");
 
     private readonly UTF8Encoding encoder;
     private readonly ICryptoTransform encryptor;

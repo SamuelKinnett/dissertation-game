@@ -283,6 +283,49 @@ public class DatabaseManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// Add answers for the specified player for the current game.
+    /// </summary>
+    /// <param name="playerId"></param>
+    /// <param name="answers"></param>
+    public void AddAnswers(int playerId, string answers)
+    {
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
+        {
+            gameplayDatabaseConnection.Open();
+
+            // Check that the game exists
+            command.CommandText = "SELECT EXISTS (SELECT 1 FROM Games WHERE GameId = @gameid);";
+            command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+            bool gameExists = Convert.ToBoolean(command.ExecuteScalar());
+
+            if (gameExists)
+            {
+                // Check that the player exists
+                command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
+                command.Parameters.Add(new SqliteParameter("@playerid", playerId));
+                bool playerExists = Convert.ToBoolean(command.ExecuteScalar());
+
+                if (playerExists)
+                {
+                    command.CommandText = "INSERT INTO Answers (PlayerId, GameId, Answers) VALUES (@playerid, @gameid, @answers);";
+                    command.Parameters.Add(new SqliteParameter("@answers", answers));
+                    command.ExecuteNonQuery();
+                }
+                else
+                {
+                    throw new Exception("The specified player does not exist in the database.");
+                }
+            }
+            else
+            {
+                throw new Exception("The provided game does not exist.");
+            }
+
+            gameplayDatabaseConnection.Close();
+        }
+    }
+
+    /// <summary>
     /// Finishes the current game, filling in the duration column and resetting
     /// the current game ID variable. If the game wasn't a draw, then it also
     /// creates a new row in the Victories table.

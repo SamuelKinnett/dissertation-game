@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS Kills;
 DROP TABLE IF EXISTS Shots;
 DROP TABLE IF EXISTS Captures;
 DROP TABLE IF EXISTS Victories;
+DROP TABLE IF EXISTS Answers;
 DROP TABLE IF EXISTS TeamPlayers;
 DROP TABLE IF EXISTS Teams;
 DROP TABLE IF EXISTS Players;
@@ -57,6 +58,15 @@ CREATE TABLE TeamPlayers (
     FOREIGN KEY (TeamId) REFERENCES Teams (TeamId),
     FOREIGN KEY (PlayerId) REFERENCES Players (PlayerId),
     PRIMARY KEY (TeamId, PlayerId)
+);
+
+CREATE TABLE Answers (
+    PlayerId INTEGER NOT NULL,
+    GameId INTEGER NOT NULL,
+    Answers TEXT NOT NULL,
+    FOREIGN KEY (PlayerId) REFERENCES Players (PlayerId),
+    FOREIGN KEY (GameId) REFERENCES Games (GameId),
+    PRIMARY KEY (PlayerId, GameId)
 );
 
 CREATE TABLE Victories (

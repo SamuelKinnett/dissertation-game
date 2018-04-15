@@ -75,6 +75,7 @@ public class GameTimeManager : NetworkBehaviour
 
                 if (GameTimeRemaining <= 0)
                 {
+                    GameTimerPaused = true;
                     RedTeamCaptureTimerPaused = true;
                     BlueTeamCaptureTimerPaused = true;
 
@@ -90,6 +91,8 @@ public class GameTimeManager : NetworkBehaviour
                 {
                     RedTeamCaptureTimeRemaining = 0;
                     RedTeamCaptureTimerPaused = true;
+                    GameTimerPaused = true;
+                    BlueTeamCaptureTimerPaused = true;
 
                     Player.players.First().Won(Team.Red);
                     DatabaseManager.Instance.FinishGame(GameInstanceData.Instance.RedTeamId);
@@ -103,6 +106,8 @@ public class GameTimeManager : NetworkBehaviour
                 {
                     BlueTeamCaptureTimeRemaining = 0;
                     BlueTeamCaptureTimerPaused = true;
+                    GameTimerPaused = true;
+                    RedTeamCaptureTimerPaused = true;
 
                     Player.players.First().Won(Team.Blue);
                     DatabaseManager.Instance.FinishGame(GameInstanceData.Instance.BlueTeamId);

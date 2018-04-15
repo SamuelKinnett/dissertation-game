@@ -33,9 +33,14 @@ public class Player : NetworkBehaviour
     [SyncVar]
     public int PlayerTeamId;
 
+    [SyncVar]
+    public bool HasAnsweredQuestions;
+
     public static List<Player> players = new List<Player>();
+    public static bool GameOver = false;
 
     public MapController mapController;
+    public QuestionController questionController;
     public GameObject playerCapsule;
 
     [SerializeField] ToggleEvent onToggleShared;
@@ -53,12 +58,12 @@ public class Player : NetworkBehaviour
     [Server]
     public void Won(Team winningTeam)
     {
+        GameOver = true;
+
         foreach (var currentPlayer in players)
         {
             currentPlayer.RpcGameOver(winningTeam);
         }
-
-        Invoke("BackToLobby", 5f);
     }
 
     /// <summary>
@@ -75,6 +80,14 @@ public class Player : NetworkBehaviour
         DisablePlayer();
 
         Invoke("Respawn", respawnTime);
+    }
+
+    public void SubmitAnswers(string answers)
+    {
+        if (isLocalPlayer)
+        {
+            CmdSubmitAnswers(answers);
+        }
     }
 
     [ClientRpc]
@@ -122,6 +135,14 @@ public class Player : NetworkBehaviour
                     initialised = true;
                     Invoke("Respawn", mapController.previewTime);
                 }
+            }
+        }
+
+        if (isServer && GameOver)
+        {
+            if (players.TrueForAll(player => player.HasAnsweredQuestions))
+            {
+                BackToLobby();
             }
         }
     }
@@ -243,6 +264,13 @@ public class Player : NetworkBehaviour
         FindObjectOfType<NetworkLobbyManager>().ServerReturnToLobby();
     }
 
+    [Command]
+    private void CmdSubmitAnswers(string answers)
+    {
+        DatabaseManager.Instance.AddAnswers(PlayerId, answers);
+        HasAnsweredQuestions = true;
+    }
+
     [ServerCallback]
     private void OnEnable()
     {
@@ -284,6 +312,9 @@ public class Player : NetworkBehaviour
             {
                 PlayerCanvasController.Instance.WriteGameStatusText("Game Over!\nYour team lost.");
             }
+
+            // Initialise question controller
+            QuestionController.Instance.InitialiseQuestions(this);
         }
     }
 }
