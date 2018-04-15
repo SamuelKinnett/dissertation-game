@@ -120,16 +120,28 @@ namespace Prototype.NetworkLobby
             if (PlayerName == "")
                 CmdNameChanged("Player" + (LobbyPlayerList._instance.playerListContentTransform.childCount-1));
 
+            string encryptedName;
+            string encryptedEmail;
+            string encryptedDeviceId;
+
             // Add this player to the database on the server
             using (var simpleAES = new SimpleAES())
             {
-                var encryptedName = simpleAES.Encrypt(PlayerData.Instance.Name);
-                var encryptedEmail = simpleAES.Encrypt(PlayerData.Instance.EmailAddress);
-                //var encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
-                var encryptedDeviceId = simpleAES.Encrypt(System.IO.Path.GetRandomFileName().Replace(".",""));
-
-                CmdAddPlayerToDatabase(encryptedName, encryptedEmail, encryptedDeviceId);
+                encryptedName = simpleAES.Encrypt(PlayerData.Instance.Name);
             }
+
+            using (var simpleAES = new SimpleAES())
+            {
+                encryptedEmail = simpleAES.Encrypt(PlayerData.Instance.EmailAddress);
+            }
+
+            using (var simpleAES = new SimpleAES())
+            {
+                // encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
+                encryptedDeviceId = simpleAES.Encrypt(System.IO.Path.GetRandomFileName().Replace(".", ""));
+            }
+
+            CmdAddPlayerToDatabase(encryptedName, encryptedEmail, encryptedDeviceId);
 
             //we switch from simple name display to name input
             teamButton.interactable = true;

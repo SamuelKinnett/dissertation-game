@@ -405,6 +405,11 @@
     <Compile Include="Assets\Scripts\Player\PlayerCanvasController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerShooting.cs" />
+    <Compile Include="Assets\Scripts\Security\EncryptionKey.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EncryptionKey.tt</DependentUpon>
+    </Compile>
     <Compile Include="Assets\Scripts\Security\SimpleAES.cs" />
     <Compile Include="Assets\Scripts\Time\Extensions\DateTimeExtensions.cs" />
     <Compile Include="Assets\Scripts\Time\GameTimeManager.cs" />
@@ -424,6 +429,10 @@
     <Compile Include="Assets\Scripts\Weapons\ShotEffectsManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Scripts\Security\EncryptionKey.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EncryptionKey.cs</LastGenOutput>
+    </None>
     <None Include="Assets\Asset Store\Lobby\Documentation.txt" />
     <None Include="Assets\Asset Store\Lobby\Instruction.txt" />
     <None Include="Assets\Asset Store\Standard Assets\Characters\FirstPersonCharacter\FirstPersonCharacterGuidelines.txt" />
@@ -438,6 +447,9 @@
     <None Include="Assets\Fonts\OpenSans\License!.txt" />
     <None Include="Assets\packages\GAF.2.3.1\lib\net40\GAF.xml" />
     <None Include="Assets\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

@@ -1,0 +1,32 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Security.Cryptography" #>
+<#@ output extension=".cs" #>
+namespace Assets.Security
+{
+	public static class EncryptionKey
+	{
+<#
+	// By generating the encryption key through a T4 template, it becomes very
+	// easy to generate a new key for each testing build. This increases
+	// security as even if the highly unlikely scenario occurs in which someone
+	// reverse engineers the game, by the time they get the encryption key all
+	// data using it will already have been sent and subsequent testing
+	// sessions will use a new key.
+
+	var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+	var encryptionKey = new byte[32];
+	rngCryptoServiceProvider.GetBytes(encryptionKey);
+	PushIndent("        ");
+	Write("public static byte[] Key = new byte[32] {");
+	for (int i = 0; i < encryptionKey.Length - 1; ++i) {
+		Write($"{encryptionKey[i].ToString()}, ");
+	}
+	WriteLine(encryptionKey[encryptionKey.Length - 1].ToString() + "};");
+	PopIndent();
+#>
+	}
+}

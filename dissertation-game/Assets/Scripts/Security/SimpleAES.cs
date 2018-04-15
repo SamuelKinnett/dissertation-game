@@ -3,6 +3,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
+using Assets.Security;
+
 /// <summary>
 /// Simple encryption class for sending certain data to the server. 
 /// Code adapted from https://stackoverflow.com/a/26518496
@@ -11,20 +13,13 @@ public class SimpleAES : IDisposable
 {
     private const int InitialisationVectorBytes = 16;
 
-    // This key should be manually changed before building the test clients for
-    // each session. While not the most secure possible method, this should 
-    // then sufficiently prevent an attacker from reverse engineering the game,
-    // getting the key and then decrypting subsequent playthroughs, since the
-    // key will then have changed.
-    private static readonly byte[] key = Convert.FromBase64String("DV1hnYfomz8yD1Q2pIHavP7ooZ4O7teAQt2qmn0CWwt=");
-
     private readonly UTF8Encoding encoder;
     private readonly ICryptoTransform encryptor;
     private readonly RijndaelManaged rijndael;
 
     public SimpleAES()
     {
-        rijndael = new RijndaelManaged() { Key = key };
+        rijndael = new RijndaelManaged() { Key = EncryptionKey.Key };
         rijndael.GenerateIV();
         encryptor = rijndael.CreateEncryptor();
         encoder = new UTF8Encoding();

@@ -11,7 +11,7 @@ public class BriefingController : MonoBehaviour
     public Text BriefingText;
 
     public string DateUntilAnonymisation;
-    public string DateUntilUniDeletion;
+    public string DateUntilDeletion;
 
     private bool briefingRead;
 
@@ -30,7 +30,7 @@ public class BriefingController : MonoBehaviour
         // Insert the dates
         BriefingText.text = BriefingText.text
             .Replace("{DateUntilAnonymisation}", DateUntilAnonymisation)
-            .Replace("{DateUntilUniDeletion}", DateUntilUniDeletion);
+            .Replace("{DateUntilDeletion}", DateUntilDeletion);
     }
 
     // Update is called once per frame

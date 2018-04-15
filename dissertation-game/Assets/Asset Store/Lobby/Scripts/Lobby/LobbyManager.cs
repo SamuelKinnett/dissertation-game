@@ -38,6 +38,8 @@ namespace Prototype.NetworkLobby
         public RectTransform mainMenuPanel;
         public RectTransform lobbyPanel;
 
+        public RectTransform CreditsPanel;
+
         public LobbyInfoPanel infoPanel;
         public LobbyCountdownPanel countdownPanel;
         public GameObject addPlayerButton;
@@ -192,6 +194,11 @@ namespace Prototype.NetworkLobby
         {
             backDelegate();
             topPanel.isInGame = false;
+        }
+
+        public void SetCreditsVisible(bool visible)
+        {
+            CreditsPanel.gameObject.SetActive(visible);
         }
 
         // ----------------- Server management
@@ -495,15 +502,6 @@ namespace Prototype.NetworkLobby
             {
                 if (lobbySlots[i] != null)
                 {
-                    // If the player hasn't been added to the database then do so
-                    var playerName = (lobbySlots[i] as LobbyPlayer).PlayerName;
-                    var playerDeviceId = System.IO.Path.GetRandomFileName().Replace(".", "");
-
-                    if ((lobbySlots[i] as LobbyPlayer).PlayerId == -1)
-                    {
-                        (lobbySlots[i] as LobbyPlayer).PlayerId = DatabaseManager.Instance.AddPlayer(playerDeviceId);
-                    }
-
                     ++playerCount;
 
                     switch ((lobbySlots[i] as LobbyPlayer).PlayerTeam)
