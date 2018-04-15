@@ -9,24 +9,70 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 using Assets.Scripts.Environment.Enums;
+using System.IO;
 
 public class DatabaseManager : NetworkBehaviour
 {
     public static DatabaseManager Instance;
 
-    private SqliteConnection databaseConnection;
+    private static string gameplayDatabasePath = "/Database/Database.db";
+    private static string participantInfoDatabasePath = "/Database/ParticipantInfo.db";
+
+    private SqliteConnection gameplayDatabaseConnection;
+    private SqliteConnection participantInfoDatabaseConnection;
 
     private int currentSessionId;
     private int currentGameId;
 
+    public static bool DoRequiredDatabasesExist()
+    {
+        return File.Exists(Application.streamingAssetsPath + gameplayDatabasePath) && File.Exists(Application.streamingAssetsPath + participantInfoDatabasePath);
+    }
+
     public void InitialiseDatabase()
     {
         var connectionString = new SqliteConnectionStringBuilder();
-        connectionString.DataSource = $"{Application.streamingAssetsPath}/Database/Database.db";
+        connectionString.DataSource = Application.streamingAssetsPath + gameplayDatabasePath;
         // connectionString.ForeignKeys = true;
         connectionString.Version = 3;
 
-        databaseConnection = new SqliteConnection(connectionString.ToString());
+        gameplayDatabaseConnection = new SqliteConnection(connectionString.ToString());
+
+        connectionString.DataSource = Application.streamingAssetsPath + participantInfoDatabasePath;
+
+        participantInfoDatabaseConnection = new SqliteConnection(connectionString.ToString());
+    }
+
+    /// <summary>
+    /// Add a new participant, or update existing participant details.
+    /// </summary>
+    public void AddParticipantInfo(string name, string email, string deviceId)
+    {
+        using (var command = new SqliteCommand(participantInfoDatabaseConnection))
+        {
+            participantInfoDatabaseConnection.Open();
+
+            // Check to see if this participant has already been added
+            command.CommandText = "SELECT EXISTS (SELECT 1 FROM Participants WHERE DeviceId = @playerdeviceid);";
+            command.Parameters.Add(new SqliteParameter("@playerdeviceid", deviceId));
+            command.Parameters.Add(new SqliteParameter("@name", name));
+            command.Parameters.Add(new SqliteParameter("@email", email));
+
+            bool participantAlreadyPresent = Convert.ToBoolean(command.ExecuteScalar());
+
+            if (participantAlreadyPresent)
+            {
+                command.CommandText = "UPDATE Participants SET Name = @name, Email = @email WHERE DeviceId = @playerdeviceid;";
+                command.ExecuteNonQuery();
+            }
+            else
+            {
+                command.CommandText = "INSERT INTO Participants (Name, Email, DeviceId) VALUES (@name, @email, @playerdeviceid);";
+                command.ExecuteNonQuery();
+            }
+
+            participantInfoDatabaseConnection.Close();
+        }
     }
 
     /// <summary>
@@ -39,13 +85,13 @@ public class DatabaseManager : NetworkBehaviour
             "INSERT INTO Sessions DEFAULT VALUES;" +
             "SELECT last_insert_rowid();";
 
-        using (var command = new SqliteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             currentSessionId = Convert.ToInt32(command.ExecuteScalar());
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
 
         Debug.Log($"Current session ID: {currentSessionId}");
@@ -66,16 +112,16 @@ public class DatabaseManager : NetworkBehaviour
             "INSERT INTO Games (SessionId, GameTypeId, Date, Duration) VALUES (@sessionid, @gametypeid, @date, 0);" +
             "SELECT last_insert_rowid();";
 
-        using (var command = new SqliteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             command.Parameters.Add(new SqliteParameter("@sessionid", currentSessionId));
             command.Parameters.Add(new SqliteParameter("@gametypeid", (int)gameType));
             command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.Now.ToUnixTimeSeconds()));
             currentGameId = Convert.ToInt32(command.ExecuteScalar());
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
 
         Debug.Log($"Current Game ID: {currentGameId}");
@@ -95,16 +141,16 @@ public class DatabaseManager : NetworkBehaviour
 
         var sql = "INSERT INTO Maps (GameId, Date, Chromosome) VALUES (@gameid, @date, @chromosome);";
 
-        using (var command = new SqliteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
             command.Parameters.Add(new SqliteParameter("@date", DateTimeOffset.Now.ToUnixTimeSeconds()));
             command.Parameters.Add(new SqliteParameter("@chromosome", chromosome));
             command.ExecuteNonQuery();
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
 
         Debug.Log("Map chromosome added to database");
@@ -115,13 +161,13 @@ public class DatabaseManager : NetworkBehaviour
     /// is inserted into the Players table and the new player ID is returned.
     /// Otherwise the existing player ID is returned.
     /// </summary>
-    public int AddPlayer(string playerName, string playerDeviceId)
+    public int AddPlayer(string playerDeviceId)
     {
         int newPlayerId = -1;
 
-        using (var command = new SqliteCommand(databaseConnection))
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             // Check to see if this player has connected before
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerDeviceId = @playerdeviceid);";
@@ -138,20 +184,13 @@ public class DatabaseManager : NetworkBehaviour
             }
             else
             {
-                // Ensure the player name isn't longer than the allowed maximum (50
-                // characters) and, if it is, truncate it.
-                playerName = playerName.Length > 50
-                    ? playerName.Substring(0, 50)
-                    : playerName;
-
                 // Add the player to the database
-                command.CommandText = "INSERT INTO Players (PlayerDeviceId, Name) VALUES (@playerdeviceid, @name);" +
+                command.CommandText = "INSERT INTO Players (PlayerDeviceId) VALUES (@playerdeviceid);" +
                     "SELECT last_insert_rowid();";
-                command.Parameters.Add(new SqliteParameter("@name", playerName));
                 newPlayerId = Convert.ToInt32(command.ExecuteScalar());
             }
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
 
         return newPlayerId;
@@ -172,14 +211,14 @@ public class DatabaseManager : NetworkBehaviour
         var sql = "INSERT INTO Teams (GameId) VALUES (@gameid);" +
             "SELECT last_insert_rowid();";
 
-        using (var command = new SqliteCommand(sql, databaseConnection))
+        using (var command = new SqliteCommand(sql, gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
             newTeamId = Convert.ToInt32(command.ExecuteScalar());
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
 
         return newTeamId;
@@ -187,9 +226,9 @@ public class DatabaseManager : NetworkBehaviour
 
     public void AddPlayerToTeam(int playerId, int teamId)
     {
-        using (var command = new SqliteCommand(databaseConnection))
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             // Check that the player and team exist
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
@@ -209,7 +248,7 @@ public class DatabaseManager : NetworkBehaviour
                 throw new Exception("The specified player or team does not exist in the database.");
             }
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
     }
 
@@ -220,9 +259,9 @@ public class DatabaseManager : NetworkBehaviour
     /// </summary>
     public void FinishGame(int winningTeamId = -1)
     {
-        using (var command = new SqliteCommand(databaseConnection))
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             // Check that the game exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Games WHERE GameId = @gameid);";
@@ -263,7 +302,7 @@ public class DatabaseManager : NetworkBehaviour
                 throw new Exception("The provided game does not exist.");
             }
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
     }
 
@@ -278,9 +317,9 @@ public class DatabaseManager : NetworkBehaviour
             throw new Exception("Cannot add a capture when a game has not been started.");
         }
 
-        using (var command = new SqliteCommand(databaseConnection))
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             if (teamId.HasValue)
             {
@@ -309,7 +348,7 @@ public class DatabaseManager : NetworkBehaviour
                 command.ExecuteNonQuery();
             }
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
     }
 
@@ -327,9 +366,9 @@ public class DatabaseManager : NetworkBehaviour
 
         int newShotId = -1;
 
-        using (var command = new SqliteCommand(databaseConnection))
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             // Check that the player exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
@@ -378,7 +417,7 @@ public class DatabaseManager : NetworkBehaviour
                 throw new Exception("The provided player does not exist.");
             }
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
 
         return newShotId;
@@ -395,9 +434,9 @@ public class DatabaseManager : NetworkBehaviour
             throw new Exception("Cannot add a kill when a game has not been started.");
         }
 
-        using (var command = new SqliteCommand(databaseConnection))
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
-            databaseConnection.Open();
+            gameplayDatabaseConnection.Open();
 
             // Check that the player, target and shot all exist
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
@@ -421,7 +460,7 @@ public class DatabaseManager : NetworkBehaviour
                 throw new Exception("The specified player, target or shot does not exist in the database.");
             }
 
-            databaseConnection.Close();
+            gameplayDatabaseConnection.Close();
         }
     }
 

@@ -33,3 +33,6 @@ dissertation-game/sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# Databases
+dissertation-game/Assets/StreamingAssets/Database/*.db

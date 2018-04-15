@@ -405,6 +405,7 @@
     <Compile Include="Assets\Scripts\Player\PlayerCanvasController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerShooting.cs" />
+    <Compile Include="Assets\Scripts\Security\SimpleAES.cs" />
     <Compile Include="Assets\Scripts\Time\Extensions\DateTimeExtensions.cs" />
     <Compile Include="Assets\Scripts\Time\GameTimeManager.cs" />
     <Compile Include="Assets\Scripts\UI\BriefingController.cs" />

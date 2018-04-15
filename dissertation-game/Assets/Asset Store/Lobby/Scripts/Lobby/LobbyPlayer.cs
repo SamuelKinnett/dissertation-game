@@ -121,8 +121,14 @@ namespace Prototype.NetworkLobby
                 CmdNameChanged("Player" + (LobbyPlayerList._instance.playerListContentTransform.childCount-1));
 
             // Add this player to the database on the server
-            // TODO: Replace the testing string with an actual identifier
-            CmdAddPlayerToDatabase(PlayerData.Instance.Name, PlayerData.Instance.EmailAddress, System.IO.Path.GetRandomFileName().Replace(".", ""));
+            using (var simpleAES = new SimpleAES())
+            {
+                var encryptedName = simpleAES.Encrypt(PlayerData.Instance.Name);
+                var encryptedEmail = simpleAES.Encrypt(PlayerData.Instance.EmailAddress);
+                var encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
+
+                CmdAddPlayerToDatabase(encryptedName, encryptedEmail, encryptedDeviceId);
+            }
 
             //we switch from simple name display to name input
             teamButton.interactable = true;
@@ -284,9 +290,19 @@ namespace Prototype.NetworkLobby
         }
 
         [Command]
-        public void CmdAddPlayerToDatabase(string name, string emailAddress, string deviceId)
+        public void CmdAddPlayerToDatabase(string encryptedName, string encryptedEmail, string encryptedDeviceId)
         {
-            PlayerId = DatabaseManager.Instance.AddPlayer(PlayerName, deviceId);
+            using (var simpleAES = new SimpleAES())
+            {
+                var name = simpleAES.Decrypt(encryptedName);
+                var emailAddress = simpleAES.Decrypt(encryptedEmail);
+                var deviceId = simpleAES.Decrypt(encryptedDeviceId);
+
+                Debug.Log($"Adding new player. Encrypted data:\n{encryptedName}\n{encryptedEmail}\n{encryptedDeviceId}\n\nDecrypted data:\n{name}\n{emailAddress}\n{deviceId}");
+
+                DatabaseManager.Instance.AddParticipantInfo(name, emailAddress, deviceId);
+                PlayerId = DatabaseManager.Instance.AddPlayer(deviceId);
+            }
         }
 
         //Cleanup thing when get destroy (which happen when client kick or disconnect)

@@ -6,18 +6,23 @@ public class BriefingController : MonoBehaviour
     public InputField NameField;
     public InputField EmailField;
     public InputField DeviceIdField;
+    public Scrollbar BriefingScrollbar;
     public Button ConsentButton;
     public Text BriefingText;
 
     public string DateUntilAnonymisation;
     public string DateUntilUniDeletion;
 
+    private bool briefingRead;
+
     // Use this for initialization
     void Start()
     {
         DontDestroyOnLoad(this);
 
-        ConsentButton.enabled = false;
+        ConsentButton.interactable = false;
+        briefingRead = false;
+        BriefingScrollbar.onValueChanged.AddListener(ScrollbarUpdated);
 
         PlayerData.Instance.DeviceId = SystemInfo.deviceUniqueIdentifier;
         DeviceIdField.text = PlayerData.Instance.DeviceId;
@@ -31,13 +36,13 @@ public class BriefingController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (EmailField.text.Length > 0 && NameField.text.Length > 0)
+        if (EmailField.text.Length > 0 && NameField.text.Length > 0 && briefingRead)
         {
-            ConsentButton.enabled = true;
+            ConsentButton.interactable = true;
         }
         else
         {
-            ConsentButton.enabled = false;
+            ConsentButton.interactable = false;
         }
     }
 
@@ -48,6 +53,14 @@ public class BriefingController : MonoBehaviour
             PlayerData.Instance.Name = NameField.text;
             PlayerData.Instance.EmailAddress = EmailField.text;
             gameObject.SetActive(false);
+        }
+    }
+
+    public void ScrollbarUpdated(float newValue)
+    {
+        if (newValue <= 0)
+        {
+            briefingRead = true;
         }
     }
 }

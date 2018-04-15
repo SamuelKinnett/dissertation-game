@@ -45,6 +45,8 @@ namespace Prototype.NetworkLobby
         protected RectTransform currentPanel;
 
         public Button backButton;
+        public Button DedicatedServerControlButton;
+        public Button DedicatedServerProceduralButton;
 
         public Text statusInfo;
         public Text hostInfo;
@@ -72,6 +74,17 @@ namespace Prototype.NetworkLobby
             s_Singleton = this;
             _lobbyHooks = GetComponent<Prototype.NetworkLobby.LobbyHook>();
             currentPanel = mainMenuPanel;
+
+            if (DatabaseManager.DoRequiredDatabasesExist())
+            {
+                DedicatedServerControlButton.interactable = true;
+                DedicatedServerProceduralButton.interactable = true;
+            }
+            else
+            {
+                DedicatedServerControlButton.interactable = false;
+                DedicatedServerProceduralButton.interactable = false;
+            }
 
             backButton.gameObject.SetActive(false);
             GetComponent<Canvas>().enabled = true;
@@ -154,6 +167,9 @@ namespace Prototype.NetworkLobby
                 backButton.gameObject.SetActive(false);
                 SetServerInfo("Offline", "None");
                 _isMatchmaking = false;
+                DedicatedServerControlButton.interactable =
+                    DedicatedServerProceduralButton.interactable =
+                    DatabaseManager.DoRequiredDatabasesExist();
             }
         }
 
@@ -484,7 +500,7 @@ namespace Prototype.NetworkLobby
 
                     if ((lobbySlots[i] as LobbyPlayer).PlayerId == -1)
                     {
-                        (lobbySlots[i] as LobbyPlayer).PlayerId = DatabaseManager.Instance.AddPlayer(playerName, playerDeviceId);
+                        (lobbySlots[i] as LobbyPlayer).PlayerId = DatabaseManager.Instance.AddPlayer(playerDeviceId);
                     }
 
                     switch ((lobbySlots[i] as LobbyPlayer).PlayerTeam)

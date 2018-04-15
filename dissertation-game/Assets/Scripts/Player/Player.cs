@@ -44,7 +44,6 @@ public class Player : NetworkBehaviour
     [SerializeField] float respawnTime = 5.0f;
     [SerializeField] Text playerNameText;
 
-
     private GameObject mainCamera;
     private bool initialised;
 
