@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
-using Assets.Scripts.Environment.Enums;
-using Assets.Scripts.Environment.Structs;
+using UnityEngine;
 
 using GAF;
-using UnityEngine;
+
+using Assets.Environment.Helpers.Pathfinding;
+using Assets.Scripts.Environment.Enums;
+using Assets.Scripts.Environment.Structs;
 
 namespace Assets.Scripts.Environment.Helpers
 {
@@ -146,7 +149,48 @@ namespace Assets.Scripts.Environment.Helpers
             return mapSketch;
         }
 
-        public static bool[,] FloodFillMapSketch(TileType[,] mapSketch, int mapSketchWidth, int mapSketchHeight, int startX, int startY)
+        public static Vector2[] GetReferenceTilePositionsForSpawns(int mapSketchWidth, int mapSketchHeight)
+        {
+            // For simplicity, we assume there is a single reference tile for
+            // each team, wich we take to be the central tile of the spawn
+            // point.
+            var returnList = new Vector2[2];
+
+            returnList[0].x = 5;
+            returnList[0].y = 5;
+            returnList[1].x = mapSketchWidth - 5;
+            returnList[1].y = mapSketchHeight - 5;
+
+            return returnList;
+        }
+
+        public static List<Vector2> GetTargetTiles(Chromosome chromosome, int mapSketchWidth, int mapSketchHeight)
+        {
+            var geneTuple = (GeneTuple)chromosome.Genes.Last().ObjectValue;
+            var returnList = new List<Vector2>();
+
+            var capturePointX = geneTuple.X;
+            var capturePointY = geneTuple.Y;
+            var capturePointSize = geneTuple.Z;
+
+            for (int curX = capturePointX; curX < capturePointX + capturePointSize; ++curX)
+            {
+                for (int curY = capturePointY; curY < capturePointY + capturePointSize; ++curY)
+                {
+                    if (curX >= 0 &&
+                        curX < mapSketchWidth &&
+                        curY >= 0 &&
+                        curY < mapSketchHeight)
+                    {
+                        returnList.Add(new Vector2(curX, curY));
+                    }
+                }
+            }
+
+            return returnList;
+        }
+
+        public static bool[,] FloodFillMapSketch(TileType[,] mapSketch, int mapSketchWidth, int mapSketchHeight, Vector2 startingTile, Vector2? targetTile = null)
         {
             // This queue stores all tiles currently being considered
             Queue<Tuple<int, int>> tiles = new Queue<Tuple<int, int>>();
@@ -158,15 +202,27 @@ namespace Assets.Scripts.Environment.Helpers
             bool[,] visitedTiles = new bool[mapSketchWidth, mapSketchHeight];
 
             // Initialise the queue
-            tiles.Enqueue(new Tuple<int, int>(startX, startY));
-            visitedTiles[startX, startY] = true;
+            tiles.Enqueue(new Tuple<int, int>((int)startingTile.x, (int)startingTile.y));
+            visitedTiles[(int)startingTile.x, (int)startingTile.y] = true;
 
-            while (tiles.Count > 0)
+            bool exitEarly = false;
+
+            while (tiles.Count > 0 && !exitEarly)
             {
                 var currentTile = tiles.Dequeue();
 
                 var x = (int)currentTile.Item1;
                 var y = (int)currentTile.Item2;
+
+                if (targetTile.HasValue)
+                {
+                    // If a target has been specified and we've reached it then
+                    // exit early.
+                    if (x == (int)targetTile.Value.x && y == (int)targetTile.Value.y)
+                    {
+                        exitEarly = true;
+                    }
+                }
 
                 // If this tile isn't impassable then add its neighbours to
                 // the queue
@@ -202,6 +258,33 @@ namespace Assets.Scripts.Environment.Helpers
             }
 
             return reachableTiles;
+        }
+
+        public static Graph CreateGraphForMapSketch(TileType[,] mapSketch, int mapSketchWidth, int mapSketchHeight)
+        {
+            var newGraph = new Graph();
+
+            // Add all passable tiles to the graph
+            for (int x = 0; x < mapSketchWidth; ++x)
+            {
+                for (int y = 0; y < mapSketchHeight; ++y)
+                {
+                    if (mapSketch[x, y] != TileType.Impassable)
+                    {
+                        newGraph.AddNode(x, y);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x - 1, y), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x - 1, y - 1), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x, y - 1), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x + 1, y - 1), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x + 1, y), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x + 1, y + 1), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x, y + 1), true);
+                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x - 1, y + 1), true);
+                    }
+                }
+            }
+
+            return newGraph;
         }
     }
 }

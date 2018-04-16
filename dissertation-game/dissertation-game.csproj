@@ -12,13 +12,16 @@
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectGenerator>VSTU</UnityProjectGenerator>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2017.3.1f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
@@ -393,6 +396,10 @@
     <Compile Include="Assets\Scripts\Environment\Genetic Algorithms\MapMutate.cs" />
     <Compile Include="Assets\Scripts\Environment\Helpers\GeneticAlgorithmHelpers.cs" />
     <Compile Include="Assets\Scripts\Environment\Helpers\MapSketchHelpers.cs" />
+    <Compile Include="Assets\Scripts\Environment\Helpers\Pathfinding\Edge.cs" />
+    <Compile Include="Assets\Scripts\Environment\Helpers\Pathfinding\Graph.cs" />
+    <Compile Include="Assets\Scripts\Environment\Helpers\Pathfinding\Node.cs" />
+    <Compile Include="Assets\Scripts\Environment\Helpers\Pathfinding\NodeExtensions.cs" />
     <Compile Include="Assets\Scripts\Environment\MapChunkController.cs" />
     <Compile Include="Assets\Scripts\Environment\MapController.cs" />
     <Compile Include="Assets\Scripts\Environment\Structs\SyncListTuple.cs" />
