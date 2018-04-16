@@ -6,7 +6,6 @@ using UnityEngine;
 
 using GAF;
 
-using Assets.Environment.Helpers.Pathfinding;
 using Assets.Scripts.Environment.Enums;
 using Assets.Scripts.Environment.Structs;
 
@@ -190,19 +189,30 @@ namespace Assets.Scripts.Environment.Helpers
             return returnList;
         }
 
-        public static bool[,] FloodFillMapSketch(TileType[,] mapSketch, int mapSketchWidth, int mapSketchHeight, Vector2 startingTile, Vector2? targetTile = null)
+        public static int[,] FloodFillMapSketch(TileType[,] mapSketch, int mapSketchWidth, int mapSketchHeight, Vector2 startingTile, Vector2? targetTile = null)
         {
-            // This queue stores all tiles currently being considered
-            Queue<Tuple<int, int>> tiles = new Queue<Tuple<int, int>>();
+            // This queue stores all tiles currently being considered.
+            // These are stored using a Tuple in the form: 
+            // <x, y, currentDistance>
+            Queue<Tuple<int, int, int>> tiles = new Queue<Tuple<int, int, int>>();
 
-            // This array stores true if a tile can be reached from the starting tile
-            bool[,] reachableTiles = new bool[mapSketchWidth, mapSketchHeight];
+            // This array stores a -1 if a tile cannot be reached from the
+            // starting tile. Otherwise it stores the number of tiles it is
+            // away from the starting tile.
+            int[,] reachableTiles = new int[mapSketchWidth, mapSketchHeight];
+            for (int x = 0; x < mapSketchWidth; ++x)
+            {
+                for (int y = 0; y < mapSketchHeight; ++y)
+                {
+                    reachableTiles[x, y] = -1;
+                }
+            }
 
             // This array stores true if a tile has been visited already by the algorithm
             bool[,] visitedTiles = new bool[mapSketchWidth, mapSketchHeight];
 
             // Initialise the queue
-            tiles.Enqueue(new Tuple<int, int>((int)startingTile.x, (int)startingTile.y));
+            tiles.Enqueue(new Tuple<int, int, int>((int)startingTile.x, (int)startingTile.y, 0));
             visitedTiles[(int)startingTile.x, (int)startingTile.y] = true;
 
             bool exitEarly = false;
@@ -213,6 +223,7 @@ namespace Assets.Scripts.Environment.Helpers
 
                 var x = (int)currentTile.Item1;
                 var y = (int)currentTile.Item2;
+                var currentDistance = (int)currentTile.Item3;
 
                 if (targetTile.HasValue)
                 {
@@ -228,63 +239,60 @@ namespace Assets.Scripts.Environment.Helpers
                 // the queue
                 if (mapSketch[x, y] != TileType.Impassable)
                 {
-                    reachableTiles[x, y] = true;
+                    reachableTiles[x, y] = currentDistance;
 
-                    if (x + 1 < mapSketchWidth - 1 &&
-                        !visitedTiles[x + 1, y])
+                    if (x + 1 < mapSketchWidth - 1)
                     {
-                        tiles.Enqueue(new Tuple<int, int>(x + 1, y));
-                        visitedTiles[x + 1, y] = true;
+                        if (!visitedTiles[x + 1, y])
+                        {
+                            tiles.Enqueue(new Tuple<int, int, int>(x + 1, y, currentDistance + 1));
+                            visitedTiles[x + 1, y] = true;
+                        }
+                        else if (reachableTiles[x + 1, y] > currentDistance + 1)
+                        {
+                            reachableTiles[x + 1, y] = currentDistance + 1;
+                        }
                     }
-                    if (x - 1 > 0 &&
-                        !visitedTiles[x - 1, y])
+                    if (x - 1 > 0)
                     {
-                        tiles.Enqueue(new Tuple<int, int>(x - 1, y));
-                        visitedTiles[x - 1, y] = true;
+                        if (!visitedTiles[x - 1, y])
+                        {
+                            tiles.Enqueue(new Tuple<int, int, int>(x - 1, y, currentDistance + 1));
+                            visitedTiles[x - 1, y] = true;
+                        }
+                        else if (reachableTiles[x - 1, y] > currentDistance + 1)
+                        {
+                            reachableTiles[x - 1, y] = currentDistance + 1;
+                        }
                     }
-                    if (y + 1 < mapSketchHeight - 1 &&
-                        !visitedTiles[x, y + 1])
+                    if (y + 1 < mapSketchHeight - 1)
                     {
-                        tiles.Enqueue(new Tuple<int, int>(x, y + 1));
-                        visitedTiles[x, y + 1] = true;
+                        if (!visitedTiles[x, y + 1])
+                        {
+                            tiles.Enqueue(new Tuple<int, int, int>(x, y + 1, currentDistance + 1));
+                            visitedTiles[x, y + 1] = true;
+                        }
+                        else if (reachableTiles[x, y + 1] > currentDistance + 1)
+                        {
+                            reachableTiles[x, y + 1] = currentDistance + 1;
+                        }
                     }
-                    if (y - 1 > 0 &&
-                        !visitedTiles[x, y - 1])
+                    if (y - 1 > 0)
                     {
-                        tiles.Enqueue(new Tuple<int, int>(x, y - 1));
-                        visitedTiles[x, y - 1] = true;
+                        if (!visitedTiles[x, y - 1])
+                        {
+                            tiles.Enqueue(new Tuple<int, int, int>(x, y - 1, currentDistance + 1));
+                            visitedTiles[x, y - 1] = true;
+                        }
+                        else if (reachableTiles[x, y - 1] > currentDistance + 1)
+                        {
+                            reachableTiles[x, y - 1] = currentDistance + 1;
+                        }
                     }
                 }
             }
 
             return reachableTiles;
-        }
-
-        public static Graph CreateGraphForMapSketch(TileType[,] mapSketch, int mapSketchWidth, int mapSketchHeight)
-        {
-            var newGraph = new Graph();
-
-            // Add all passable tiles to the graph
-            for (int x = 0; x < mapSketchWidth; ++x)
-            {
-                for (int y = 0; y < mapSketchHeight; ++y)
-                {
-                    if (mapSketch[x, y] != TileType.Impassable)
-                    {
-                        newGraph.AddNode(x, y);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x - 1, y), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x - 1, y - 1), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x, y - 1), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x + 1, y - 1), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x + 1, y), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x + 1, y + 1), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x, y + 1), true);
-                        newGraph.AddEdge(new Vector2(x, y), new Vector2(x - 1, y + 1), true);
-                    }
-                }
-            }
-
-            return newGraph;
         }
     }
 }

@@ -79,8 +79,21 @@ public class GameTimeManager : NetworkBehaviour
                     RedTeamCaptureTimerPaused = true;
                     BlueTeamCaptureTimerPaused = true;
 
-                    Player.players.First().Won(Team.Random);
-                    DatabaseManager.Instance.FinishGame();
+                    if (RedTeamCaptureTimeRemaining < BlueTeamCaptureTimeRemaining)
+                    {
+                        Player.players.First().Won(Team.Red);
+                        DatabaseManager.Instance.FinishGame(GameInstanceData.Instance.RedTeamId);
+                    }
+                    else if (BlueTeamCaptureTimeRemaining < RedTeamCaptureTimeRemaining)
+                    {
+                        Player.players.First().Won(Team.Blue);
+                        DatabaseManager.Instance.FinishGame(GameInstanceData.Instance.BlueTeamId);
+                    }
+                    else
+                    {
+                        Player.players.First().Won(Team.Random);
+                        DatabaseManager.Instance.FinishGame();
+                    }
                 }
             }
             if (!RedTeamCaptureTimerPaused)

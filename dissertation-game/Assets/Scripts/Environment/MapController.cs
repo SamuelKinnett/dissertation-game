@@ -44,6 +44,8 @@ public class MapController : NetworkBehaviour
     // The capture point prefab
     public GameObject capturePointPrefab;
 
+    public GameTimeManager gameTimeManager;
+
     // Reference to the main camera so it can be positioned in the centre of 
     // the map.
     public Camera MainCamera;
@@ -535,8 +537,12 @@ public class MapController : NetworkBehaviour
         geneticAlgorithm.Operators.Add(crossover);
         geneticAlgorithm.Operators.Add(mutation);
 
+        // Update the game time variables in the genetic algorithm helpers
+        GeneticAlgorithmHelpers.team1TimeRemaining = GameTimeManager.Instance.RedTeamCaptureTimeRemaining;
+        GeneticAlgorithmHelpers.team2TimeRemaining = GameTimeManager.Instance.BlueTeamCaptureTimeRemaining;
+
         // Run the genetic algorithm
-        geneticAlgorithm.RunAsync(GeneticAlgorithmHelpers.Terminate);
+        geneticAlgorithm.Run(GeneticAlgorithmHelpers.Terminate);
     }
 
     private void UpdateCapturePoint()

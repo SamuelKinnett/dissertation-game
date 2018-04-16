@@ -224,6 +224,7 @@ MonoBehaviour:
   mapChunkPrefab: {fileID: 1658531532845656, guid: 3b2eabd8a5cb30945b87cd528b9115f6,
     type: 2}
   capturePointPrefab: {fileID: 0}
+  gameTimeManager: {fileID: 0}
   MainCamera: {fileID: 0}
   borderTerrainController: {fileID: 114244607086689860}
 --- !u!114 &114244607086689860
