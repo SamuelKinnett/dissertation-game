@@ -29,13 +29,13 @@ public class GameTimeManager : NetworkBehaviour
     public float BlueTeamCaptureTimeRemaining;
 
     [SyncVar]
-    private bool RedTeamCaptureTimerPaused;
+    public bool RedTeamCaptureTimerPaused;
 
     [SyncVar]
-    private bool GameTimerPaused;
+    public bool GameTimerPaused;
 
     [SyncVar]
-    private bool BlueTeamCaptureTimerPaused;
+    public bool BlueTeamCaptureTimerPaused;
 
     // Ensure there is only one GameTimeManager
     private void Awake()

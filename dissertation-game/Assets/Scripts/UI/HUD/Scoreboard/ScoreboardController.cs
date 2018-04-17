@@ -71,6 +71,7 @@ public class ScoreboardController : MonoBehaviour
         }
 
         playerScores[playerId].PlayerDeaths = newDeathsValue;
+        SortPlayers();
     }
 
     public void UpdatePlayerKills(int playerId, int newKillsValue)
@@ -87,6 +88,7 @@ public class ScoreboardController : MonoBehaviour
         }
 
         playerScores[playerId].PlayerKills = newKillsValue;
+        SortPlayers();
     }
 
     public void UpdatePlayerName(int playerId, string newName)

@@ -58,22 +58,22 @@ namespace Prototype.NetworkLobby
         public void OnClickDedicatedControl()
         {
             lobbyManager.ChangeTo(null);
+            lobbyManager.gameType = GameType.Control;
             lobbyManager.StartServer();
 
             lobbyManager.backDelegate = lobbyManager.StopServerClbk;
 
-            lobbyManager.gameType = GameType.Control;
             lobbyManager.SetServerInfo("Dedicated Server (Control)", lobbyManager.networkAddress);
         }
 
         public void OnClickDedicatedProcedural()
         {
             lobbyManager.ChangeTo(null);
+            lobbyManager.gameType = GameType.Procedural;
             lobbyManager.StartServer();
 
             lobbyManager.backDelegate = lobbyManager.StopServerClbk;
 
-            lobbyManager.gameType = GameType.Procedural;
             lobbyManager.SetServerInfo("Dedicated Server (Procedural)", lobbyManager.networkAddress);
         }
 

@@ -178,9 +178,9 @@ public class PlayerCanvasController : MonoBehaviour
         ScoreboardController.UpdatePlayerKills(player.PlayerId, newKills);
     }
 
-    public void UpdatePlayerDeathsOnScoreboard(Player player)
+    public void UpdatePlayerDeathsOnScoreboard(Player player, int newDeaths)
     {
-        ScoreboardController.UpdatePlayerDeaths(player.PlayerId, player.Deaths);
+        ScoreboardController.UpdatePlayerDeaths(player.PlayerId, newDeaths);
     }
 
     public void UpdatePlayerTeamOnScoreboard(Player player)

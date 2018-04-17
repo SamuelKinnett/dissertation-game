@@ -35,6 +35,9 @@ namespace Prototype.NetworkLobby
         [Header("UI Reference")]
         public LobbyTopPanel topPanel;
 
+        public GameObject DedicatedControlButton;
+        public Text DedicatedControlButtonText;
+
         public RectTransform mainMenuPanel;
         public RectTransform lobbyPanel;
 
@@ -185,6 +188,22 @@ namespace Prototype.NetworkLobby
         {
             statusInfo.text = status;
             hostInfo.text = host;
+        }
+
+        public void ChangeGameType()
+        {
+            if (gameType == GameType.Control)
+            {
+                gameType = GameType.Procedural;
+                DedicatedControlButtonText.text = "Procedural";
+                SetServerInfo("Dedicated Server (Procedural)", networkAddress);
+            }
+            else
+            {
+                gameType = GameType.Control;
+                DedicatedControlButtonText.text = "Control";
+                SetServerInfo("Dedicated Server (Control)", networkAddress);
+            }
         }
 
 
@@ -440,6 +459,9 @@ namespace Prototype.NetworkLobby
         {
             base.OnLobbyStartServer();
 
+            DedicatedControlButton.SetActive(true);
+            DedicatedControlButtonText.text = gameType == GameType.Control ? "Control" : "Procedural";
+
             databaseManager = Instantiate(DatabaseManagerPrefab).GetComponent<DatabaseManager>();
             DontDestroyOnLoad(databaseManager.gameObject);
 
@@ -453,6 +475,8 @@ namespace Prototype.NetworkLobby
         public override void OnStopServer()
         {
             base.OnStopServer();
+
+            DedicatedControlButton.SetActive(false);
 
             Destroy(databaseManager.gameObject);
             Destroy(gameInstanceData.gameObject);

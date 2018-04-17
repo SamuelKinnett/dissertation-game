@@ -133,6 +133,15 @@ public class Player : NetworkBehaviour
                 if (mapController.GetHasSpawnPositions(PlayerTeam))
                 {
                     initialised = true;
+                    // Weird worakround to stop towers of players spawning on
+                    // top of each other.
+                    for (int i = 0; i < players.Count; ++i)
+                    {
+                        if (players[i] != this)
+                        {
+                            mapController.GetSpawnPositionForTeam(PlayerTeam);
+                        }
+                    }
                     Invoke("Respawn", mapController.previewTime);
                 }
             }
@@ -255,13 +264,18 @@ public class Player : NetworkBehaviour
     {
         if (!isServer)
         {
-            PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this);
+            PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this, Deaths);
         }
     }
 
     private void BackToLobby()
     {
         FindObjectOfType<NetworkLobbyManager>().ServerReturnToLobby();
+    }
+
+    private void InitialiseQuestions()
+    {
+        QuestionController.Instance.InitialiseQuestions(this);
     }
 
     [Command]
@@ -314,7 +328,7 @@ public class Player : NetworkBehaviour
             }
 
             // Initialise question controller
-            QuestionController.Instance.InitialiseQuestions(this);
+            Invoke("InitialiseQuestions", 3.0f);
         }
     }
 }

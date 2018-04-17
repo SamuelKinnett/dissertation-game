@@ -267,7 +267,7 @@ public class MapController : NetworkBehaviour
                         {
                             SetLargeBlock(curX, i, curY, 0);
                         }
-                        newRedTeamSpawnPositions.Add(new Vector3(curX * 2, 3, curY * 2));
+                        newRedTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
                         break;
 
                     case TileType.Team2Spawn:
@@ -276,7 +276,7 @@ public class MapController : NetworkBehaviour
                         {
                             SetLargeBlock(curX, i, curY, 0);
                         }
-                        newBlueTeamSpawnPositions.Add(new Vector3(curX * 2, 3, curY * 2));
+                        newBlueTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
                         break;
 
                     case TileType.Barrier:
@@ -458,7 +458,13 @@ public class MapController : NetworkBehaviour
                 UpdateMapWithCurrentGenes();
             }
 
-            Invoke("GenerateWorld", 15);
+            if (!GameTimeManager.Instance.GameTimerPaused &&
+                GameTimeManager.Instance.RedTeamCaptureTimeRemaining > 0 &&
+                GameTimeManager.Instance.BlueTeamCaptureTimeRemaining > 0 &&
+                GameInstanceData.Instance.GameType == GameType.Procedural)
+            {
+                Invoke("GenerateWorld", 15);
+            }
         }
     }
 

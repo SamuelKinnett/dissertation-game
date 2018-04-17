@@ -89,3 +89,6 @@ MonoBehaviour:
   GameTimeRemaining: 0
   RedTeamCaptureTimeRemaining: 0
   BlueTeamCaptureTimeRemaining: 0
+  RedTeamCaptureTimerPaused: 0
+  GameTimerPaused: 0
+  BlueTeamCaptureTimerPaused: 0
