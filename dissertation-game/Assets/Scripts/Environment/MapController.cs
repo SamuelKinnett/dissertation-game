@@ -392,6 +392,7 @@ public class MapController : NetworkBehaviour
         {
             GeneticAlgorithmHelpers.mapSketchWidth = (int)mapDimensions.x / 2;
             GeneticAlgorithmHelpers.mapSketchHeight = (int)mapDimensions.z / 2;
+            GeneticAlgorithmHelpers.timeToCapture = gameTimeManager.RedTeamCaptureTimeRemaining;
 
             // Create the default genes
             for (int i = 0; i < 31; ++i)
@@ -542,7 +543,7 @@ public class MapController : NetworkBehaviour
         GeneticAlgorithmHelpers.team2TimeRemaining = GameTimeManager.Instance.BlueTeamCaptureTimeRemaining;
 
         // Run the genetic algorithm
-        geneticAlgorithm.Run(GeneticAlgorithmHelpers.Terminate);
+        geneticAlgorithm.RunAsync(GeneticAlgorithmHelpers.Terminate);
     }
 
     private void UpdateCapturePoint()

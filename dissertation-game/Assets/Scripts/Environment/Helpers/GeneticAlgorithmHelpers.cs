@@ -17,6 +17,7 @@ namespace Assets.Scripts.Environment.Helpers
 
         public static float team1TimeRemaining;
         public static float team2TimeRemaining;
+        public static float timeToCapture;
 
         public static double FitnessFunction(Chromosome chromosome)
         {
@@ -72,12 +73,15 @@ namespace Assets.Scripts.Environment.Helpers
             var explorationForTeam1 = GetMapCoverage(0, referenceTiles, mapSketchWidth, mapSketchHeight, mapSketch, totalPassableTiles) / referenceTiles.Count();
             var explorationForTeam2 = GetMapCoverage(1, referenceTiles, mapSketchWidth, mapSketchHeight, mapSketch, totalPassableTiles) / referenceTiles.Count();
 
+            var team1CapturePercentage = 1 - (team1TimeRemaining / timeToCapture);
+            var team2CapturePercentage = 1 - (team2TimeRemaining / timeToCapture);
 
-            //var testFitness = (mapReachableForTeamOne.Cast<bool>().Count((tile) => tile) + mapReachableForTeamTwo.Cast<bool>().Count((tile) => tile)) / (float)(mapSketchWidth * mapSketchHeight * 2);
-            var testRand = new System.Random();
-            var testFitness = testRand.NextDouble();
+            var percentageDelta = team1CapturePercentage - team2CapturePercentage;
+            var strategicResourceControlDelta = strategicResourceControlForTeam1 - strategicResourceControlForTeam2;
 
-            return testFitness;
+            var fitness = 1.0f - Mathf.Abs(strategicResourceControlDelta + percentageDelta) / 2.0f;
+
+            return fitness;
         }
 
         public static bool Terminate(Population population, int currentGeneration, long currentEvaluation)
