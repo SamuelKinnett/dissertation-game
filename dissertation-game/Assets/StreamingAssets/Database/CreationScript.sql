@@ -80,7 +80,7 @@ CREATE TABLE Victories (
 CREATE TABLE Captures (
     CaptureId INTEGER PRIMARY KEY NOT NULL,
     GameId INTEGER NOT NULL,
-    TeamId INTEGER NOT NULL,
+    TeamId INTEGER,
     Date INTEGER NOT NULL,
     FOREIGN KEY (GameId) REFERENCES Games (GameId),
     FOREIGN KEY (TeamId) REFERENCES Teams (TeamId)
