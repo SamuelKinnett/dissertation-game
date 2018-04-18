@@ -69,6 +69,8 @@ namespace Assets.Scripts.Environment.Helpers
             var strategicResourceControlForTeam1 = GetStrategicResourceControlValue(0, referenceTiles, targetTiles, mapReachableForTeamOne, mapReachableForTeamTwo);
             var strategicResourceControlForTeam2 = GetStrategicResourceControlValue(1, referenceTiles, targetTiles, mapReachableForTeamTwo, mapReachableForTeamOne);
 
+            Debug.Log($"{team1TimeRemaining}, {team2TimeRemaining}, {timeToCapture}, {strategicResourceControlForTeam1}, {strategicResourceControlForTeam2}");
+
             var team1CapturePercentage = 1 - (team1TimeRemaining / timeToCapture);
             var team2CapturePercentage = 1 - (team2TimeRemaining / timeToCapture);
 

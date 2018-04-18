@@ -49,6 +49,7 @@ CREATE TABLE Players (
 CREATE TABLE Teams (
     TeamId INTEGER PRIMARY KEY NOT NULL,
     GameId INTEGER NOT NULL,
+    TeamNumber INTEGER NOT NULL,
     FOREIGN KEY (GameId) REFERENCES Games (GameId)
 );
 

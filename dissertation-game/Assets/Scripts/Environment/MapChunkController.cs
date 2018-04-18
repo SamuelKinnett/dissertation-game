@@ -326,11 +326,11 @@ public class MapChunkController : NetworkBehaviour
             var playerTileY = (int)Mathf.Round(player.transform.position.y / 2);
             var playerTileZ = (int)Mathf.Round(player.transform.position.z / 2);
 
-            Debug.Log($"Checking player {player.PlayerName} at position [{playerTileX}, {playerTileY}, {playerTileZ}]");
+            //Debug.Log($"Checking player {player.PlayerName} at position [{playerTileX}, {playerTileY}, {playerTileZ}]");
 
             if (Contains(playerTileX, playerTileY, playerTileZ))
             {
-                Debug.Log("Checking...");
+                //Debug.Log("Checking...");
                 if (!mapController.CheckPlayerInSafeTile(player))
                 {
                     mapController.MovePlayerToNearestSafeTile(player);

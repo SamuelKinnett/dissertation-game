@@ -37,6 +37,7 @@ namespace Prototype.NetworkLobby
 
         public GameObject DedicatedControlButton;
         public Text DedicatedControlButtonText;
+        public GameObject ForceStartGameButton;
 
         public RectTransform mainMenuPanel;
         public RectTransform lobbyPanel;
@@ -404,18 +405,23 @@ namespace Prototype.NetworkLobby
 
             if (allready)
             {
-                DatabaseManager.Instance.StartNewGame(gameType);
-                GameInstanceData.Instance.GameType = gameType;
-
-                var redTeamId = DatabaseManager.Instance.AddTeam(Team.Red);
-                var blueTeamId = DatabaseManager.Instance.AddTeam(Team.Blue);
-
-                GameInstanceData.Instance.RedTeamId = redTeamId;
-                GameInstanceData.Instance.BlueTeamId = blueTeamId;
-
-                ResolvePlayers(redTeamId, blueTeamId);
-                StartCoroutine(ServerCountdownCoroutine());
+                StartGame();
             }
+        }
+
+        public void StartGame()
+        {
+            DatabaseManager.Instance.StartNewGame(gameType);
+            GameInstanceData.Instance.GameType = gameType;
+
+            var redTeamId = DatabaseManager.Instance.AddTeam(Team.Red);
+            var blueTeamId = DatabaseManager.Instance.AddTeam(Team.Blue);
+
+            GameInstanceData.Instance.RedTeamId = redTeamId;
+            GameInstanceData.Instance.BlueTeamId = blueTeamId;
+
+            ResolvePlayers(redTeamId, blueTeamId);
+            StartCoroutine(ServerCountdownCoroutine());
         }
 
         public IEnumerator ServerCountdownCoroutine()
@@ -459,6 +465,8 @@ namespace Prototype.NetworkLobby
         {
             base.OnLobbyStartServer();
 
+            ForceStartGameButton.SetActive(true);
+
             DedicatedControlButton.SetActive(true);
             DedicatedControlButtonText.text = gameType == GameType.Control ? "Control" : "Procedural";
 
@@ -475,6 +483,8 @@ namespace Prototype.NetworkLobby
         public override void OnStopServer()
         {
             base.OnStopServer();
+
+            ForceStartGameButton.SetActive(false);
 
             DedicatedControlButton.SetActive(false);
 
@@ -559,7 +569,7 @@ namespace Prototype.NetworkLobby
             {
                 var newTeam = remainingRed > 0
                     ? remainingBlue > 0
-                        ? (Team)Random.Range((int)Team.Red, (int)Team.Blue)
+                        ? (Team)Random.Range((int)Team.Red, (int)Team.Blue + 1)
                         : Team.Red
                     : Team.Blue;
 

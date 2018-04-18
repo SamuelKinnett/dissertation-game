@@ -44,8 +44,6 @@ public class MapController : NetworkBehaviour
     // The capture point prefab
     public GameObject capturePointPrefab;
 
-    public GameTimeManager gameTimeManager;
-
     // Reference to the main camera so it can be positioned in the centre of 
     // the map.
     public Camera MainCamera;
@@ -318,7 +316,7 @@ public class MapController : NetworkBehaviour
     [ServerCallback]
     public void MovePlayerToNearestSafeTile(Player player)
     {
-        Debug.Log($"Warping player {player.PlayerName}");
+        // Debug.Log($"Warping player {player.PlayerName}");
 
         var safeTiles = new List<Vector2>();
 
@@ -359,7 +357,7 @@ public class MapController : NetworkBehaviour
             var playerTileX = (int)Mathf.Round(player.transform.position.x / 2);
             var playerTileY = (int)Mathf.Round(player.transform.position.z / 2);
 
-            Debug.Log($"Checking player {player.PlayerName} at [{playerTileX}, {playerTileY}] ({currentMapSketch[playerTileX, playerTileY].ToString()})");
+            // Debug.Log($"Checking player {player.PlayerName} at [{playerTileX}, {playerTileY}] ({currentMapSketch[playerTileX, playerTileY].ToString()})");
 
             return !(currentMapSketch[playerTileX, playerTileY] == TileType.Impassable);
         }
@@ -392,7 +390,7 @@ public class MapController : NetworkBehaviour
         {
             GeneticAlgorithmHelpers.mapSketchWidth = (int)mapDimensions.x / 2;
             GeneticAlgorithmHelpers.mapSketchHeight = (int)mapDimensions.z / 2;
-            GeneticAlgorithmHelpers.timeToCapture = gameTimeManager.RedTeamCaptureTimeRemaining;
+            GeneticAlgorithmHelpers.timeToCapture = GameTimeManager.Instance.RequiredHoldTime;
 
             // Create the default genes
             for (int i = 0; i < 31; ++i)
