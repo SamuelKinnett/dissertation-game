@@ -240,7 +240,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TerrainWidth: 9
   TerrainDepth: 9
-  MaxHeight: 50
+  MaxHeight: 80
   MinHeight: 20
   RangeChange: 2
   textureMapDimensions: {x: 4, y: 4}

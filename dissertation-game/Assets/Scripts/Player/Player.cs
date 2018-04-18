@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -135,6 +136,7 @@ public class Player : NetworkBehaviour
                     initialised = true;
                     // Weird worakround to stop towers of players spawning on
                     // top of each other.
+                    players.OrderBy(p => p.PlayerId);
                     for (int i = 0; i < players.Count; ++i)
                     {
                         if (players[i] != this)
@@ -207,14 +209,22 @@ public class Player : NetworkBehaviour
     /// </summary>
     private void Respawn()
     {
-        if (isLocalPlayer)
+        if (!GameTimeManager.Instance.GameTimerPaused)
         {
-            PlayerCanvasController.Instance.PlayerLoaded();
-            transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam);
-            transform.rotation = PlayerTeam == Team.Red ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
+            if (isLocalPlayer)
+            {
+                PlayerCanvasController.Instance.PlayerLoaded();
+                transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam);
+                transform.rotation = PlayerTeam == Team.Red ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
+            }
+
+            EnablePlayer();
+        }
+        else
+        {
+            Invoke("Respawn", 1.0f);
         }
 
-        EnablePlayer();
     }
 
     /// <summary>
@@ -235,6 +245,8 @@ public class Player : NetworkBehaviour
 
     private void OnTeamChanged(Team newValue)
     {
+        PlayerTeam = newValue;
+
         var newColour = StaticColours.NeautralColour;
 
         switch (newValue)
@@ -262,10 +274,9 @@ public class Player : NetworkBehaviour
 
     private void OnDeathsChanged(int newValue)
     {
-        if (!isServer)
-        {
-            PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this, Deaths);
-        }
+        Deaths = newValue;
+
+        PlayerCanvasController.Instance.UpdatePlayerDeathsOnScoreboard(this, Deaths);
     }
 
     private void BackToLobby()

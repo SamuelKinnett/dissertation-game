@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
+using System.IO;
 
 using Mono.Data.Sqlite;
 
@@ -9,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 using Assets.Scripts.Environment.Enums;
-using System.IO;
+using Assets.Scripts.Player.Enums;
 
 public class DatabaseManager : NetworkBehaviour
 {
@@ -230,15 +228,17 @@ public class DatabaseManager : NetworkBehaviour
     /// Inserts a new team into the Teams table for the current game and 
     /// returns the TeamId of the newly created row.
     /// </summary>
-    public int AddTeam()
+    public int AddTeam(Team teamType)
     {
+        int teamnumber = (int)teamType;
+
         if (currentGameId == -1)
         {
             throw new Exception("Cannot add a team when a game has not been started.");
         }
 
         int newTeamId = -1;
-        var sql = "INSERT INTO Teams (GameId) VALUES (@gameid);" +
+        var sql = "INSERT INTO Teams (GameId, TeamNumber) VALUES (@gameid, @teamnumber);" +
             "SELECT last_insert_rowid();";
 
         using (var command = new SqliteCommand(sql, gameplayDatabaseConnection))
@@ -246,6 +246,7 @@ public class DatabaseManager : NetworkBehaviour
             gameplayDatabaseConnection.Open();
 
             command.Parameters.Add(new SqliteParameter("@gameid", currentGameId));
+            command.Parameters.Add(new SqliteParameter("@teamnumber", teamnumber));
             newTeamId = Convert.ToInt32(command.ExecuteScalar());
 
             gameplayDatabaseConnection.Close();
@@ -280,6 +281,70 @@ public class DatabaseManager : NetworkBehaviour
 
             gameplayDatabaseConnection.Close();
         }
+    }
+
+    /// <summary>
+    /// If this player has already taken part in a game this session, then get
+    /// their team ID. Used if a player disconnects then reconnects.
+    /// </summary>
+    /// <param name="playerId"></param>
+    public Team GetPlayerTeamForSession(int playerId)
+    {
+        Team playerTeam;
+
+        using (var command = new SqliteCommand(gameplayDatabaseConnection))
+        {
+            gameplayDatabaseConnection.Open();
+
+            // Check that the player exists
+            command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
+            command.Parameters.Add(new SqliteParameter("@playerid", playerId));
+            bool playerExists = Convert.ToBoolean(command.ExecuteScalar());
+
+            if (playerExists)
+            {
+                command.CommandText =
+                    "SELECT IFNULL((" +
+                    "   SELECT TeamNumber " +
+                    "      FROM Players " +
+                    "      JOIN( " +
+                    "       SELECT PlayerId, TeamNumber " +
+                    "       FROM TeamPlayers " +
+                    "       JOIN( " +
+                    "           SELECT * " +
+                    "           FROM Teams " +
+                    "           JOIN( " +
+                    "               SELECT GameId " +
+                    "               FROM Sessions " +
+                    "               JOIN Games " +
+                    "               USING(SessionId) " +
+                    "               WHERE SessionId = @sessionid) " +
+                    "           USING(GameId)) " +
+                    "       Using(TeamId)) " +
+                    "   USING(PlayerId) " +
+                    "   WHERE PlayerId = @playerid)," +
+                    "   -1);";
+                command.Parameters.Add(new SqliteParameter("@sessionid", currentSessionId));
+                var playerTeamNumber = Convert.ToInt32(command.ExecuteScalar());
+
+                if (playerTeamNumber == -1)
+                {
+                    playerTeam = Team.Random;
+                }
+                else
+                {
+                    playerTeam = (Team)playerTeamNumber;
+                }
+            }
+            else
+            {
+                throw new Exception("The specified player does not exist in the database.");
+            }
+
+            gameplayDatabaseConnection.Close();
+        }
+
+        return playerTeam;
     }
 
     /// <summary>

@@ -56,7 +56,7 @@ public class GameTimeManager : NetworkBehaviour
         if (isServer)
         {
             GameTimeRemaining = GameLength;
-            GameTimerPaused = true;
+            GameTimerPaused = false;
             RedTeamCaptureTimeRemaining = RequiredHoldTime;
             RedTeamCaptureTimerPaused = true;
             BlueTeamCaptureTimeRemaining = RequiredHoldTime;

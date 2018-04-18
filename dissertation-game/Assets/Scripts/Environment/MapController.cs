@@ -349,7 +349,7 @@ public class MapController : NetworkBehaviour
 
         var closestTile = safeTiles.First();
 
-        player.RpcWarpToPosition(new Vector3(closestTile.x * 2 + 1, wallHeight * 2, closestTile.y * 2 + 1));
+        player.RpcWarpToPosition(new Vector3(closestTile.x * 2 + 1, wallHeight, closestTile.y * 2 + 1));
     }
 
     public bool CheckPlayerInSafeTile(Player player)

@@ -127,10 +127,7 @@ public class PlayerShooting : NetworkBehaviour
     {
         kills = newScore;
 
-        if (!isServer)
-        {
-            PlayerCanvasController.Instance.UpdatePlayerKillsOnScoreboard(player, kills);
-        }
+        PlayerCanvasController.Instance.UpdatePlayerKillsOnScoreboard(player, kills);
 
         if (isLocalPlayer)
         {

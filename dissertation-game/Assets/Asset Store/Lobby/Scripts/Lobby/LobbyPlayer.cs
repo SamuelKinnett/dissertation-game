@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
@@ -137,8 +133,7 @@ namespace Prototype.NetworkLobby
 
             using (var simpleAES = new SimpleAES())
             {
-                // encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
-                encryptedDeviceId = simpleAES.Encrypt(System.IO.Path.GetRandomFileName().Replace(".", ""));
+                encryptedDeviceId = simpleAES.Encrypt(PlayerData.Instance.DeviceId);
             }
 
             CmdAddPlayerToDatabase(encryptedName, encryptedEmail, encryptedDeviceId);
@@ -238,7 +233,8 @@ namespace Prototype.NetworkLobby
         //so that all client get the new value throught syncvar
         public void OnTeamClicked()
         {
-            CmdTeamChanged();
+            // Disabled for testing.
+            // CmdTeamChanged();
         }
 
         public void OnReadyClicked()
@@ -292,14 +288,15 @@ namespace Prototype.NetworkLobby
         [Command]
         public void CmdTeamChanged()
         {
-            if ((int)PlayerTeam < (int)Team.Blue)
-            {
-                ++PlayerTeam;
-            }
-            else
-            {
-                PlayerTeam = Team.Random;
-            }
+            // Disabled for testing
+            // if ((int)PlayerTeam < (int)Team.Blue)
+            // {
+            //     ++PlayerTeam;
+            // }
+            // else
+            // {
+            //     PlayerTeam = Team.Random;
+            // }
         }
 
         [Command]
@@ -315,6 +312,8 @@ namespace Prototype.NetworkLobby
 
                 DatabaseManager.Instance.AddParticipantInfo(name, emailAddress, deviceId);
                 PlayerId = DatabaseManager.Instance.AddPlayer(deviceId);
+
+                PlayerTeam = DatabaseManager.Instance.GetPlayerTeamForSession(PlayerId);
             }
         }
 

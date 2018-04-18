@@ -68,10 +68,6 @@ namespace Assets.Scripts.Environment.Helpers
 
             var strategicResourceControlForTeam1 = GetStrategicResourceControlValue(0, referenceTiles, targetTiles, mapReachableForTeamOne, mapReachableForTeamTwo);
             var strategicResourceControlForTeam2 = GetStrategicResourceControlValue(1, referenceTiles, targetTiles, mapReachableForTeamTwo, mapReachableForTeamOne);
-            var areaControlForTeam1 = GetAreaControlValue(0, referenceTiles, mapSketchWidth, mapSketchHeight, mapReachableForTeamOne, mapReachableForTeamTwo);
-            var areaControlForTeam2 = GetAreaControlValue(1, referenceTiles, mapSketchWidth, mapSketchHeight, mapReachableForTeamTwo, mapReachableForTeamOne);
-            var explorationForTeam1 = GetMapCoverage(0, referenceTiles, mapSketchWidth, mapSketchHeight, mapSketch, totalPassableTiles) / referenceTiles.Count();
-            var explorationForTeam2 = GetMapCoverage(1, referenceTiles, mapSketchWidth, mapSketchHeight, mapSketch, totalPassableTiles) / referenceTiles.Count();
 
             var team1CapturePercentage = 1 - (team1TimeRemaining / timeToCapture);
             var team2CapturePercentage = 1 - (team2TimeRemaining / timeToCapture);

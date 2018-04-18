@@ -407,8 +407,8 @@ namespace Prototype.NetworkLobby
                 DatabaseManager.Instance.StartNewGame(gameType);
                 GameInstanceData.Instance.GameType = gameType;
 
-                var redTeamId = DatabaseManager.Instance.AddTeam();
-                var blueTeamId = DatabaseManager.Instance.AddTeam();
+                var redTeamId = DatabaseManager.Instance.AddTeam(Team.Red);
+                var blueTeamId = DatabaseManager.Instance.AddTeam(Team.Blue);
 
                 GameInstanceData.Instance.RedTeamId = redTeamId;
                 GameInstanceData.Instance.BlueTeamId = blueTeamId;
