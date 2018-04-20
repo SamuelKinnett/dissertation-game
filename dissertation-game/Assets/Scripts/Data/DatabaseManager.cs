@@ -276,6 +276,7 @@ public class DatabaseManager : NetworkBehaviour
             }
             else
             {
+                gameplayDatabaseConnection.Close();
                 throw new Exception("The specified player or team does not exist in the database.");
             }
 
@@ -338,6 +339,7 @@ public class DatabaseManager : NetworkBehaviour
             }
             else
             {
+                gameplayDatabaseConnection.Close();
                 throw new Exception("The specified player does not exist in the database.");
             }
 
@@ -378,11 +380,13 @@ public class DatabaseManager : NetworkBehaviour
                 }
                 else
                 {
+                    gameplayDatabaseConnection.Close();
                     throw new Exception("The specified player does not exist in the database.");
                 }
             }
             else
             {
+                gameplayDatabaseConnection.Close();
                 throw new Exception("The provided game does not exist.");
             }
 
@@ -431,12 +435,14 @@ public class DatabaseManager : NetworkBehaviour
                     }
                     else
                     {
+                        gameplayDatabaseConnection.Close();
                         throw new Exception("The winning team does not exist.");
                     }
                 }
             }
             else
             {
+                gameplayDatabaseConnection.Close();
                 throw new Exception("The provided game does not exist.");
             }
 
@@ -475,6 +481,7 @@ public class DatabaseManager : NetworkBehaviour
                 }
                 else
                 {
+                    gameplayDatabaseConnection.Close();
                     throw new Exception("The provided team does not exist");
                 }
             }
@@ -539,6 +546,7 @@ public class DatabaseManager : NetworkBehaviour
                     }
                     else
                     {
+                        gameplayDatabaseConnection.Close();
                         throw new Exception("The provided recipient does not exist.");
                     }
                 }
@@ -552,6 +560,7 @@ public class DatabaseManager : NetworkBehaviour
             }
             else
             {
+                gameplayDatabaseConnection.Close();
                 throw new Exception("The provided player does not exist.");
             }
 
@@ -595,6 +604,7 @@ public class DatabaseManager : NetworkBehaviour
             }
             else
             {
+                gameplayDatabaseConnection.Close();
                 throw new Exception("The specified player, target or shot does not exist in the database.");
             }
 

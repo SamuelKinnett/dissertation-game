@@ -3,6 +3,10 @@
 using UnityEngine;
 using UnityEngine.Networking;
 
+/// <summary>
+/// Controls a chunk of the map. Based on the tutorials at:
+/// https://forum.unity.com/threads/tutorial-procedural-meshes-and-voxel-terrain-c.198651/
+/// </summary>
 public class MapChunkController : NetworkBehaviour
 {
     public MeshFilter MeshFilter;

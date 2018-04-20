@@ -26,8 +26,8 @@ public class MapController : NetworkBehaviour
     public Vector3 mapDimensions;
 
     // Used to reduce the number of map updates on the clients
-    [SyncVar(hook = "OnUpdatingGenesChanged")]
-    public bool updatingGenes;
+    // [SyncVar(hook = "OnUpdatingGenesChanged")]
+    // public bool updatingGenes;
 
     // How long to preview the map changes before they are made concrete
     [SyncVar]
@@ -105,7 +105,7 @@ public class MapController : NetworkBehaviour
 
     public override void OnStartClient()
     {
-        currentGenes.Callback = OnCurrentGenesUpdated;
+        // currentGenes.Callback = OnCurrentGenesUpdated;
         base.OnStartClient();
     }
 
@@ -368,7 +368,7 @@ public class MapController : NetworkBehaviour
     // Use this for initialization
     private void Start()
     {
-        updatingGenes = true;
+        // updatingGenes = true;
         chunksInitialised = false;
 
         mapData = new byte[(int)mapDimensions.x, (int)mapDimensions.y, (int)mapDimensions.z];
@@ -416,7 +416,9 @@ public class MapController : NetworkBehaviour
 
             // Add the default capture point
             currentGenes[30] = new GeneTuple((int)mapDimensions.x / 4 - 1, (int)mapDimensions.z / 4 - 1, 2);
-            updatingGenes = false;
+            Invoke("DelayedInitialMapUpdate", 2.0f);
+
+            // updatingGenes = false;
 
             // TODO: Move this into a game manager class
             GameTimeManager.Instance.SetGameTimerPaused(false);
@@ -427,12 +429,17 @@ public class MapController : NetworkBehaviour
         }
     }
 
+    private void DelayedInitialMapUpdate()
+    {
+        RpcUpdateMap();
+    }
+
     private void Update()
     {
         if (isServer && mapUpdateNeeded)
         {
             // Update the current gene list for network synchronisation
-            updatingGenes = true;
+            // updatingGenes = true;
 
             for (int i = 0; i < currentMapChromosome.Genes.Count; ++i)
             {
@@ -444,7 +451,8 @@ public class MapController : NetworkBehaviour
                 }
             }
 
-            updatingGenes = false;
+            // updatingGenes = false;
+            RpcUpdateMap();
             mapUpdateNeeded = false;
 
             // Store the map in the database
@@ -570,20 +578,26 @@ public class MapController : NetworkBehaviour
         InstantiateChunks();
     }
 
-    private void OnUpdatingGenesChanged(bool newValue)
-    {
-        if (newValue == false)
-        {
-            UpdateMapWithCurrentGenes();
-        }
-    }
+    // private void OnUpdatingGenesChanged(bool newValue)
+    // {
+    //     if (newValue == false)
+    //     {
+    //         UpdateMapWithCurrentGenes();
+    //     }
+    // }
+    // 
+    // private void OnCurrentGenesUpdated(SyncListStruct<GeneTuple>.Operation operation, int index)
+    // {
+    //     if (!updatingGenes)
+    //     {
+    //         UpdateMapWithCurrentGenes();
+    //     }
+    // }
 
-    private void OnCurrentGenesUpdated(SyncListStruct<GeneTuple>.Operation operation, int index)
+    [ClientRpc]
+    private void RpcUpdateMap()
     {
-        if (!updatingGenes)
-        {
-            UpdateMapWithCurrentGenes();
-        }
+        UpdateMapWithCurrentGenes();
     }
 
     #endregion

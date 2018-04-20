@@ -22,6 +22,7 @@ dissertation-game/.consulo/
 *.booproj
 *.svd
 *.pdb
+*.db
 
 # Unity3D generated meta files
 *.pidb.meta
@@ -33,6 +34,3 @@ dissertation-game/sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
-
-# Databases
-dissertation-game/Assets/StreamingAssets/Database/*.db
