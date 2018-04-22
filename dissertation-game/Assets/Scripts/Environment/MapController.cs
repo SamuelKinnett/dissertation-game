@@ -63,7 +63,7 @@ public class MapController : NetworkBehaviour
 
     private static List<MapChunkController> mapChunks;
 
-    private static int wallHeight = 6;
+    private static int wallHeight = 4;
 
     private bool chunksInitialised;
 
@@ -158,31 +158,29 @@ public class MapController : NetworkBehaviour
         SetBlock(tempX + 1, tempY + 1, tempZ + 1, block, false);
     }
 
-    public Vector3 GetSpawnPositionForTeam(Team team, int offset = 1)
+    public Vector3 GetSpawnPositionForTeam(Team team, int playerId)
     {
+        // Each player for each team has their own spawn point, to stop them
+        // from spawning on top of each other.
+        var orderedPlayers = Player.players.Where(p => p.PlayerTeam == team).OrderBy(p => p.PlayerId).ToList();
+        int spawnIndex;
+
+        if (orderedPlayers.Any(op => op.PlayerId == playerId))
+        {
+            spawnIndex = orderedPlayers.IndexOf(orderedPlayers.Single(op => op.PlayerId == playerId));
+        }
+        else
+        {
+            spawnIndex = 0;
+        }
+
         switch (team)
         {
             case Team.Red:
-                if (currentRedTeamSpawnIndex + offset < redTeamSpawnPositions.Count)
-                {
-                    currentRedTeamSpawnIndex += offset;
-                }
-                else
-                {
-                    currentRedTeamSpawnIndex = 0;
-                }
-                return redTeamSpawnPositions[currentRedTeamSpawnIndex];
+                return redTeamSpawnPositions[Mathf.Min(redTeamSpawnPositions.Count, spawnIndex)];
 
             case Team.Blue:
-                if (currentBlueTeamSpawnIndex + offset < blueTeamSpawnPositions.Count)
-                {
-                    currentBlueTeamSpawnIndex += offset;
-                }
-                else
-                {
-                    currentBlueTeamSpawnIndex = 0;
-                }
-                return blueTeamSpawnPositions[currentBlueTeamSpawnIndex];
+                return blueTeamSpawnPositions[Mathf.Min(blueTeamSpawnPositions.Count, spawnIndex)];
 
             case Team.Random:
             default:
@@ -495,12 +493,25 @@ public class MapController : NetworkBehaviour
 
             if (!GameTimeManager.Instance.GameTimerPaused &&
                 GameTimeManager.Instance.RedTeamCaptureTimeRemaining > 0 &&
-                GameTimeManager.Instance.BlueTeamCaptureTimeRemaining > 0 &&
-                GameInstanceData.Instance.GameType == GameType.Procedural)
+                GameTimeManager.Instance.BlueTeamCaptureTimeRemaining > 0)
             {
-                Invoke("GenerateWorld", 15);
+                if (GameInstanceData.Instance.GameType == GameType.Procedural)
+                {
+                    Invoke("GenerateWorld", 15);
+                }
+                else
+                {
+                    // In case a client doesn't load the map the first time for
+                    // whatever reason, this should force the map to refresh.
+                    Invoke("ForceMapUpdate", 15);
+                }
             }
         }
+    }
+
+    private void ForceMapUpdate()
+    {
+        mapUpdateNeeded = true;
     }
 
     private void InstantiateChunks()

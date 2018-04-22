@@ -663,7 +663,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &161478
 GameObject:
   m_ObjectHideFlags: 1
@@ -4510,8 +4510,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 571.5, y: -21}
-  m_SizeDelta: {x: 1143, y: 42}
+  m_AnchoredPosition: {x: 561.5, y: -21}
+  m_SizeDelta: {x: 1123, y: 42}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &22434328
 RectTransform:
@@ -4777,7 +4777,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 555.5, y: -21}
+  m_AnchoredPosition: {x: 545.5, y: -21}
   m_SizeDelta: {x: 32, y: 32}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!224 &22459552
@@ -8868,7 +8868,7 @@ MonoBehaviour:
   BriefingScrollbar: {fileID: 114224506800579858}
   ConsentButton: {fileID: 114908371343097554}
   BriefingText: {fileID: 114247859374817554}
-  DateUntilAnonymisation: 22/04/2018
+  DateUntilAnonymisation: 26/04/2018
   DateUntilDeletion: 01/07/2018
 --- !u!114 &114186009803366416
 MonoBehaviour:
@@ -9212,7 +9212,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 224715803159078744}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.30194014
+  m_Size: 0.29602888
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -16532,8 +16532,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 865.25, y: -5}
-  m_SizeDelta: {x: 555.5, y: 0}
+  m_AnchoredPosition: {x: 850.25, y: -5}
+  m_SizeDelta: {x: 545.5, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224627301625529826
 RectTransform:
@@ -17313,8 +17313,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 277.75, y: -5}
-  m_SizeDelta: {x: 555.5, y: 0}
+  m_AnchoredPosition: {x: 272.75, y: -5}
+  m_SizeDelta: {x: 545.5, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224925443104151716
 RectTransform:

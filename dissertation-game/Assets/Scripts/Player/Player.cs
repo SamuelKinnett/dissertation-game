@@ -138,16 +138,6 @@ public class Player : NetworkBehaviour
                 if (mapController.GetHasSpawnPositions(PlayerTeam))
                 {
                     initialised = true;
-                    // Weird worakround to stop towers of players spawning on
-                    // top of each other.
-                    var orderedPlayers = players.OrderBy(p => p.PlayerId).ToList();
-                    for (int i = 0; i < orderedPlayers.Count(); ++i)
-                    {
-                        if (orderedPlayers[i].PlayerId == PlayerId)
-                        {
-                            mapController.GetSpawnPositionForTeam(PlayerTeam, i);
-                        }
-                    }
                     Invoke("Respawn", mapController.previewTime);
                 }
             }
@@ -228,7 +218,7 @@ public class Player : NetworkBehaviour
             if (isLocalPlayer)
             {
                 PlayerCanvasController.Instance.PlayerLoaded();
-                transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam);
+                transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam, PlayerId);
                 transform.rotation = PlayerTeam == Team.Red ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
             }
 
