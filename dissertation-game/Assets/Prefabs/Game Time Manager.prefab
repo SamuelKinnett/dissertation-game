@@ -84,7 +84,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aeffae4ab21f9f9418b48132545be022, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GameLength: 600
+  GameLength: 30
   RequiredHoldTime: 180
   GameTimeRemaining: 0
   RedTeamCaptureTimeRemaining: 0

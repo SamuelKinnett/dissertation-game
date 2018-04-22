@@ -63,6 +63,7 @@ namespace Prototype.NetworkLobby
             //setup the player data on UI. The value are SyncVar so the player
             //will be created with the right value currently on server
             OnMyName(PlayerName);
+            OnPlayerTeamChanged(PlayerTeam);
         }
 
         public override void OnStartAuthority()
