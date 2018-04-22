@@ -115,6 +115,10 @@ public class Player : NetworkBehaviour
         {
             PlayerCanvasController.Instance.AddPlayerToScoreboard(this);
         }
+
+        // Update the player colour and name
+        OnNameChanged(PlayerName);
+        OnTeamChanged(PlayerTeam);
     }
 
     private void Update()
