@@ -124,9 +124,12 @@ public class ScoreboardController : MonoBehaviour
         playerScores = playerScoresAsList.ToDictionary(item => item.Key, item => item.Value);
 
         // Update the order of the game objects
-        for (int currentPlayerScoreIndex = 0; currentPlayerScoreIndex < playerScores.Count; ++currentPlayerScoreIndex)
+        int currentPlayerScoreIndex = 1;
+
+        foreach (var playerScore in playerScores)
         {
-            playerScores[currentPlayerScoreIndex].transform.SetSiblingIndex(currentPlayerScoreIndex + 1);
+            playerScore.Value.transform.SetSiblingIndex(currentPlayerScoreIndex);
+            ++currentPlayerScoreIndex;
         }
     }
 

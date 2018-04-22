@@ -27,8 +27,6 @@ public class CapturePointController : NetworkBehaviour
     [SyncVar(hook = "OnBlueTeamCapturePercentageChanged")]
     private float blueTeamCapturePercentage;
 
-    private int redTeamCount;
-    private int blueTeamCount;
     private List<Player> playersInCaptureZone;
 
     private bool meshFlipped;
@@ -48,17 +46,6 @@ public class CapturePointController : NetworkBehaviour
             if (player != null && !playersInCaptureZone.Contains(player))
             {
                 playersInCaptureZone.Add(player);
-
-                switch (player.PlayerTeam)
-                {
-                    case Team.Red:
-                        ++redTeamCount;
-                        break;
-
-                    case Team.Blue:
-                        ++blueTeamCount;
-                        break;
-                }
             }
         }
         else
@@ -81,17 +68,6 @@ public class CapturePointController : NetworkBehaviour
             if (player != null && playersInCaptureZone.Contains(player))
             {
                 playersInCaptureZone.Remove(player);
-
-                switch (player.PlayerTeam)
-                {
-                    case Team.Red:
-                        --redTeamCount;
-                        break;
-
-                    case Team.Blue:
-                        --blueTeamCount;
-                        break;
-                }
             }
         }
         else
@@ -118,8 +94,11 @@ public class CapturePointController : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isServer)
+        if (isServer && !GameTimeManager.Instance.GameTimerPaused)
         {
+            int redTeamCount = playersInCaptureZone.Where(p => p.PlayerTeam == Team.Red && p.IsAlive).Count();
+            int blueTeamCount = playersInCaptureZone.Where(p => p.PlayerTeam == Team.Blue && p.IsAlive).Count();
+
             // Capturing can only take place if the capture point is uncontested
             if (redTeamCount > 0 && blueTeamCount == 0)
             {

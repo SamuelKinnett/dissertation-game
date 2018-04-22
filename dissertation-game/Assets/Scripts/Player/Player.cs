@@ -22,8 +22,8 @@ public class Player : NetworkBehaviour
     [SyncVar(hook = "OnTeamChanged")]
     public Team PlayerTeam;
 
-    [SyncVar(hook = "OnIsCapturingChanged")]
-    public bool IsCapturing;
+    [SyncVar(hook = "OnIsAliveChanged")]
+    public bool IsAlive;
 
     [SyncVar(hook = "OnDeathsChanged")]
     public int Deaths;
@@ -140,12 +140,12 @@ public class Player : NetworkBehaviour
                     initialised = true;
                     // Weird worakround to stop towers of players spawning on
                     // top of each other.
-                    players.OrderBy(p => p.PlayerId);
-                    for (int i = 0; i < players.Count; ++i)
+                    var orderedPlayers = players.OrderBy(p => p.PlayerId).ToList();
+                    for (int i = 0; i < orderedPlayers.Count(); ++i)
                     {
-                        if (players[i] != this)
+                        if (orderedPlayers[i].PlayerId == PlayerId)
                         {
-                            mapController.GetSpawnPositionForTeam(PlayerTeam);
+                            mapController.GetSpawnPositionForTeam(PlayerTeam, i);
                         }
                     }
                     Invoke("Respawn", mapController.previewTime);
@@ -167,6 +167,11 @@ public class Player : NetworkBehaviour
     /// </summary>
     private void EnablePlayer()
     {
+        if (isServer)
+        {
+            IsAlive = true;
+        }
+
         if (isLocalPlayer)
         {
             PlayerCanvasController.Instance.Initialise();
@@ -190,6 +195,11 @@ public class Player : NetworkBehaviour
     /// </summary>
     private void DisablePlayer()
     {
+        if (isServer)
+        {
+            IsAlive = false;
+        }
+
         if (isLocalPlayer)
         {
             PlayerCanvasController.Instance.HideCrosshair(true);
@@ -272,8 +282,9 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private void OnIsCapturingChanged(bool newValue)
+    private void OnIsAliveChanged(bool newValue)
     {
+        IsAlive = newValue;
     }
 
     private void OnDeathsChanged(int newValue)

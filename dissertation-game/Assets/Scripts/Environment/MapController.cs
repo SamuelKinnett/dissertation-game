@@ -63,7 +63,7 @@ public class MapController : NetworkBehaviour
 
     private static List<MapChunkController> mapChunks;
 
-    private static int wallHeight = 4;
+    private static int wallHeight = 6;
 
     private bool chunksInitialised;
 
@@ -158,14 +158,14 @@ public class MapController : NetworkBehaviour
         SetBlock(tempX + 1, tempY + 1, tempZ + 1, block, false);
     }
 
-    public Vector3 GetSpawnPositionForTeam(Team team)
+    public Vector3 GetSpawnPositionForTeam(Team team, int offset = 1)
     {
         switch (team)
         {
             case Team.Red:
-                if (currentRedTeamSpawnIndex < redTeamSpawnPositions.Count)
+                if (currentRedTeamSpawnIndex + offset < redTeamSpawnPositions.Count)
                 {
-                    ++currentRedTeamSpawnIndex;
+                    currentRedTeamSpawnIndex += offset;
                 }
                 else
                 {
@@ -174,9 +174,9 @@ public class MapController : NetworkBehaviour
                 return redTeamSpawnPositions[currentRedTeamSpawnIndex];
 
             case Team.Blue:
-                if (currentBlueTeamSpawnIndex < blueTeamSpawnPositions.Count)
+                if (currentBlueTeamSpawnIndex + offset < blueTeamSpawnPositions.Count)
                 {
-                    ++currentBlueTeamSpawnIndex;
+                    currentBlueTeamSpawnIndex += offset;
                 }
                 else
                 {
@@ -238,68 +238,97 @@ public class MapController : NetworkBehaviour
         var newRedTeamSpawnPositions = new List<Vector3>();
         var newBlueTeamSpawnPositions = new List<Vector3>();
 
+        // Make any areas that are impossible to reach become walls
+        var spawnPositions = MapSketchHelpers.GetReferenceTilePositionsForSpawns(mapSketchWidth, mapSketchHeight);
+
+        var mapReachableForTeamOne =
+            MapSketchHelpers.FloodFillMapSketch(
+                mapSketch,
+                mapSketchWidth,
+                mapSketchHeight,
+                spawnPositions[0]);
+
+        var mapReachableForTeamTwo =
+            MapSketchHelpers.FloodFillMapSketch(
+                mapSketch,
+                mapSketchWidth,
+                mapSketchHeight,
+                spawnPositions[1]);
+
         for (int curX = 0; curX < mapSketchWidth; ++curX)
         {
             for (int curY = 0; curY < mapSketchHeight; ++curY)
             {
-                switch (mapSketch[curX, curY])
+                if (mapReachableForTeamOne[curX, curY] == -1 ||
+                    mapReachableForTeamTwo[curX, curY] == -1)
                 {
-                    case TileType.Impassable:
-                        for (int i = 0; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
-                        }
-                        break;
+                    // If this tile isn't reachable, make it a wall
+                    for (int i = 0; i < wallHeight; ++i)
+                    {
+                        SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
+                    }
+                }
+                else
+                {
+                    switch (mapSketch[curX, curY])
+                    {
+                        case TileType.Impassable:
+                            for (int i = 0; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
+                            }
+                            break;
 
-                    case TileType.Passable:
-                        SetLargeBlock(curX, 0, curY, BlockType.TileFloor);
-                        for (int i = 1; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 0);
-                        }
-                        break;
+                        case TileType.Passable:
+                            SetLargeBlock(curX, 0, curY, BlockType.TileFloor);
+                            for (int i = 1; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, 0);
+                            }
+                            break;
 
-                    case TileType.Team1Spawn:
-                        SetLargeBlock(curX, 0, curY, BlockType.Team1Spawn);
-                        for (int i = 1; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 0);
-                        }
-                        newRedTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
-                        break;
+                        case TileType.Team1Spawn:
+                            SetLargeBlock(curX, 0, curY, BlockType.Team1Spawn);
+                            for (int i = 1; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, 0);
+                            }
+                            newRedTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
+                            break;
 
-                    case TileType.Team2Spawn:
-                        SetLargeBlock(curX, 0, curY, BlockType.Team2Spawn);
-                        for (int i = 1; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 0);
-                        }
-                        newBlueTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
-                        break;
+                        case TileType.Team2Spawn:
+                            SetLargeBlock(curX, 0, curY, BlockType.Team2Spawn);
+                            for (int i = 1; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, 0);
+                            }
+                            newBlueTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
+                            break;
 
-                    case TileType.Barrier:
-                        SetLargeBlock(curX, 0, curY, BlockType.BrickWall2);
-                        SetLargeBlock(curX, 1, curY, BlockType.BrickWall2);
-                        for (int i = 2; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 0);
-                        }
-                        break;
+                        case TileType.Barrier:
+                            SetLargeBlock(curX, 0, curY, BlockType.BrickWall2);
+                            SetLargeBlock(curX, 1, curY, BlockType.BrickWall2);
+                            for (int i = 2; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, 0);
+                            }
+                            break;
 
-                    case TileType.CapturePoint:
-                        SetLargeBlock(curX, 0, curY, BlockType.CapturePoint);
-                        for (int i = 1; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, 0);
-                        }
-                        break;
+                        case TileType.CapturePoint:
+                            SetLargeBlock(curX, 0, curY, BlockType.CapturePoint);
+                            for (int i = 1; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, 0);
+                            }
+                            break;
 
-                    default:
-                        for (int i = 0; i < wallHeight; ++i)
-                        {
-                            SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
-                        }
-                        break;
+                        default:
+                            for (int i = 0; i < wallHeight; ++i)
+                            {
+                                SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
+                            }
+                            break;
+                    }
                 }
             }
         }
