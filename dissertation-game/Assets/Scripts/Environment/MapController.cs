@@ -295,7 +295,7 @@ public class MapController : NetworkBehaviour
                         break;
 
                     default:
-                        for (int i = 0; i < 2; ++i)
+                        for (int i = 0; i < wallHeight; ++i)
                         {
                             SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
                         }
@@ -531,11 +531,11 @@ public class MapController : NetworkBehaviour
         // without being modified).
         var elite = new Elite(5);
 
-        // Create the crossover operator. The crossover probability is 80% and
+        // Create the crossover operator. The crossover probability is 85% and
         // a double point crossover type is used. This involves two points in
         // each chromosome being selected to identify a 'middle section', which
         // is then swapped between the two parents.
-        var crossover = new Crossover(0.8) { CrossoverType = CrossoverType.DoublePoint };
+        var crossover = new Crossover(0.85) { CrossoverType = CrossoverType.DoublePoint };
 
         // Create the mutation operator.
         var mutation = new MapMutate(0.04, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2);

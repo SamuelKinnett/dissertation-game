@@ -27,6 +27,7 @@ dissertation-game/.consulo/
 # Unity3D generated meta files
 *.pidb.meta
 *.pdb.meta
+*.db.meta
 
 # Unity3D Generated File On Crash Reports
 dissertation-game/sysinfo.txt

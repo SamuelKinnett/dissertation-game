@@ -76,6 +76,7 @@ public class DatabaseManager : NetworkBehaviour
     /// </summary>
     public void AddParticipantInfo(string name, string email, string deviceId)
     {
+        Debug.Log("Adding participant");
         using (var command = new SqliteCommand(participantInfoDatabaseConnection))
         {
             participantInfoDatabaseConnection.Open();
@@ -221,6 +222,8 @@ public class DatabaseManager : NetworkBehaviour
             gameplayDatabaseConnection.Close();
         }
 
+        Debug.Log($"Added player with ID {newPlayerId}");
+
         return newPlayerId;
     }
 
@@ -237,6 +240,8 @@ public class DatabaseManager : NetworkBehaviour
             throw new Exception("Cannot add a team when a game has not been started.");
         }
 
+        Debug.Log($"Adding new {teamType.ToString()} team...");
+
         int newTeamId = -1;
         var sql = "INSERT INTO Teams (GameId, TeamNumber) VALUES (@gameid, @teamnumber);" +
             "SELECT last_insert_rowid();";
@@ -252,6 +257,8 @@ public class DatabaseManager : NetworkBehaviour
             gameplayDatabaseConnection.Close();
         }
 
+        Debug.Log($"Added new {teamType.ToString()} team with ID: {newTeamId}.");
+
         return newTeamId;
     }
 
@@ -260,6 +267,8 @@ public class DatabaseManager : NetworkBehaviour
         using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
             gameplayDatabaseConnection.Open();
+
+            Debug.Log($"Adding player {playerId} to team {teamId}...");
 
             // Check that the player and team exist
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
@@ -280,6 +289,8 @@ public class DatabaseManager : NetworkBehaviour
                 throw new Exception("The specified player or team does not exist in the database.");
             }
 
+            Debug.Log($"Added player {playerId} to team {teamId}.");
+
             gameplayDatabaseConnection.Close();
         }
     }
@@ -296,6 +307,8 @@ public class DatabaseManager : NetworkBehaviour
         using (var command = new SqliteCommand(gameplayDatabaseConnection))
         {
             gameplayDatabaseConnection.Open();
+
+            Debug.Log($"Checking player {playerId} for previous team this session...");
 
             // Check that the player exists
             command.CommandText = "SELECT EXISTS (SELECT 1 FROM Players WHERE PlayerId = @playerid);";
@@ -342,6 +355,8 @@ public class DatabaseManager : NetworkBehaviour
                 gameplayDatabaseConnection.Close();
                 throw new Exception("The specified player does not exist in the database.");
             }
+
+            Debug.Log($"Player {playerId} belongs to {playerTeam.ToString()}");
 
             gameplayDatabaseConnection.Close();
         }
