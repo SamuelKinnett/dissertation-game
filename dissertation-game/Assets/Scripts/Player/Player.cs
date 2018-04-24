@@ -130,7 +130,16 @@ public class Player : NetworkBehaviour
                 var mapControllerObject = GameObject.Find("Map");
                 if (mapControllerObject != null)
                 {
+
                     mapController = mapControllerObject.GetComponent<MapController>();
+                }
+                else
+                {
+                    mapControllerObject = GameObject.FindGameObjectWithTag("Map");
+                    if (mapControllerObject != null)
+                    {
+                        mapController = mapControllerObject.GetComponent<MapController>();
+                    }
                 }
             }
             else
@@ -218,7 +227,7 @@ public class Player : NetworkBehaviour
             if (isLocalPlayer)
             {
                 PlayerCanvasController.Instance.PlayerLoaded();
-                transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam, PlayerId);
+                transform.position = mapController.GetSpawnPositionForTeam(PlayerTeam);
                 transform.rotation = PlayerTeam == Team.Red ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
             }
 

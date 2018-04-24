@@ -71,6 +71,7 @@ public class GameTimeManager : NetworkBehaviour
         {
             if (!GameTimerPaused)
             {
+                GameTimerPaused = false;
                 GameTimeRemaining -= Time.deltaTime;
 
                 if (GameTimeRemaining <= 0)

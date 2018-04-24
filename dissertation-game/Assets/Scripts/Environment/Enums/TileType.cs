@@ -4,10 +4,8 @@
     {
         Impassable,
         Passable,
-        Barrier,
         CapturePoint,
         Team1Spawn,
         Team2Spawn,
-        HealthPickup,
     }
 }

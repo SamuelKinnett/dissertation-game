@@ -26,7 +26,7 @@ GameObject:
   - component: {fileID: 114135108306891544}
   m_Layer: 8
   m_Name: Map
-  m_TagString: Untagged
+  m_TagString: Map
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -216,7 +216,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapDimensions: {x: 96, y: 32, z: 96}
-  updatingGenes: 0
   previewTime: 5
   chunkWidth: 16
   chunkHeight: 16
@@ -224,7 +223,6 @@ MonoBehaviour:
   mapChunkPrefab: {fileID: 1658531532845656, guid: 3b2eabd8a5cb30945b87cd528b9115f6,
     type: 2}
   capturePointPrefab: {fileID: 0}
-  gameTimeManager: {fileID: 0}
   MainCamera: {fileID: 0}
   borderTerrainController: {fileID: 114244607086689860}
 --- !u!114 &114244607086689860

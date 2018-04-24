@@ -396,6 +396,7 @@
     <Compile Include="Assets\Scripts\Environment\MapChunkController.cs" />
     <Compile Include="Assets\Scripts\Environment\MapController.cs" />
     <Compile Include="Assets\Scripts\Environment\Structs\SyncListTuple.cs" />
+    <Compile Include="Assets\Scripts\Extensions\MapSketchExtensions.cs" />
     <Compile Include="Assets\Scripts\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Scripts\Network\CustomNetworkManager.cs" />
     <Compile Include="Assets\Scripts\Network\GameLobbyHook.cs" />

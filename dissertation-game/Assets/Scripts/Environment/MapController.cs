@@ -8,6 +8,7 @@ using Assets.Scripts.Environment.Enums;
 using Assets.Scripts.Environment.Genetic_Algorithms;
 using Assets.Scripts.Environment.Helpers;
 using Assets.Scripts.Environment.Structs;
+using Assets.Scripts.Extensions;
 using Assets.Scripts.Player.Enums;
 
 using GAF;
@@ -158,29 +159,15 @@ public class MapController : NetworkBehaviour
         SetBlock(tempX + 1, tempY + 1, tempZ + 1, block, false);
     }
 
-    public Vector3 GetSpawnPositionForTeam(Team team, int playerId)
+    public Vector3 GetSpawnPositionForTeam(Team team)
     {
-        // Each player for each team has their own spawn point, to stop them
-        // from spawning on top of each other.
-        var orderedPlayers = Player.players.Where(p => p.PlayerTeam == team).OrderBy(p => p.PlayerId).ToList();
-        int spawnIndex;
-
-        if (orderedPlayers.Any(op => op.PlayerId == playerId))
-        {
-            spawnIndex = orderedPlayers.IndexOf(orderedPlayers.Single(op => op.PlayerId == playerId));
-        }
-        else
-        {
-            spawnIndex = 0;
-        }
-
         switch (team)
         {
             case Team.Red:
-                return redTeamSpawnPositions[Mathf.Min(redTeamSpawnPositions.Count, spawnIndex)];
+                return redTeamSpawnPositions[Random.Range(0, redTeamSpawnPositions.Count - 1)];
 
             case Team.Blue:
-                return blueTeamSpawnPositions[Mathf.Min(blueTeamSpawnPositions.Count, spawnIndex)];
+                return blueTeamSpawnPositions[Random.Range(0, blueTeamSpawnPositions.Count - 1)];
 
             case Team.Random:
             default:
@@ -188,7 +175,6 @@ public class MapController : NetworkBehaviour
                 // default vector. A future improvement could be to allow for
                 // deathmatch gamemodes with random spawns.
                 return Vector3.zero;
-
         }
     }
 
@@ -222,7 +208,10 @@ public class MapController : NetworkBehaviour
             currentMapChromosome = new Chromosome(currentGenes.Select((geneTuple) => new Gene(geneTuple)));
             Debug.Log("Updated current chromosome");
 
-            currentMapSketch = MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2);
+            currentMapSketch =
+                MapSketchHelpers.ConvertChromosomeToMapSketch(currentMapChromosome, (int)mapDimensions.x / 2, (int)mapDimensions.z / 2)
+                    .RemoveUnreachableTiles((int)mapDimensions.x / 2, (int)mapDimensions.z / 2);
+
             UpdateMapWithMapSketch(currentMapSketch);
             Debug.Log("Updated map");
         }
@@ -236,97 +225,59 @@ public class MapController : NetworkBehaviour
         var newRedTeamSpawnPositions = new List<Vector3>();
         var newBlueTeamSpawnPositions = new List<Vector3>();
 
-        // Make any areas that are impossible to reach become walls
-        var spawnPositions = MapSketchHelpers.GetReferenceTilePositionsForSpawns(mapSketchWidth, mapSketchHeight);
-
-        var mapReachableForTeamOne =
-            MapSketchHelpers.FloodFillMapSketch(
-                mapSketch,
-                mapSketchWidth,
-                mapSketchHeight,
-                spawnPositions[0]);
-
-        var mapReachableForTeamTwo =
-            MapSketchHelpers.FloodFillMapSketch(
-                mapSketch,
-                mapSketchWidth,
-                mapSketchHeight,
-                spawnPositions[1]);
-
         for (int curX = 0; curX < mapSketchWidth; ++curX)
         {
             for (int curY = 0; curY < mapSketchHeight; ++curY)
             {
-                if (mapReachableForTeamOne[curX, curY] == -1 ||
-                    mapReachableForTeamTwo[curX, curY] == -1)
+                switch (mapSketch[curX, curY])
                 {
-                    // If this tile isn't reachable, make it a wall
-                    for (int i = 0; i < wallHeight; ++i)
-                    {
-                        SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
-                    }
-                }
-                else
-                {
-                    switch (mapSketch[curX, curY])
-                    {
-                        case TileType.Impassable:
-                            for (int i = 0; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
-                            }
-                            break;
+                    case TileType.Impassable:
+                        for (int i = 0; i <= wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
+                        }
+                        break;
 
-                        case TileType.Passable:
-                            SetLargeBlock(curX, 0, curY, BlockType.TileFloor);
-                            for (int i = 1; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, 0);
-                            }
-                            break;
+                    case TileType.Passable:
+                        SetLargeBlock(curX, 0, curY, BlockType.TileFloor);
+                        for (int i = 1; i <= wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        break;
 
-                        case TileType.Team1Spawn:
-                            SetLargeBlock(curX, 0, curY, BlockType.Team1Spawn);
-                            for (int i = 1; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, 0);
-                            }
-                            newRedTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
-                            break;
+                    case TileType.Team1Spawn:
+                        SetLargeBlock(curX, 0, curY, BlockType.Team1Spawn);
+                        for (int i = 1; i <= wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        newRedTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
+                        break;
 
-                        case TileType.Team2Spawn:
-                            SetLargeBlock(curX, 0, curY, BlockType.Team2Spawn);
-                            for (int i = 1; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, 0);
-                            }
-                            newBlueTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
-                            break;
+                    case TileType.Team2Spawn:
+                        SetLargeBlock(curX, 0, curY, BlockType.Team2Spawn);
+                        for (int i = 1; i <= wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        newBlueTeamSpawnPositions.Add(new Vector3(curX * 2 + 1, 3, curY * 2 + 1));
+                        break;
 
-                        case TileType.Barrier:
-                            SetLargeBlock(curX, 0, curY, BlockType.BrickWall2);
-                            SetLargeBlock(curX, 1, curY, BlockType.BrickWall2);
-                            for (int i = 2; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, 0);
-                            }
-                            break;
+                    case TileType.CapturePoint:
+                        SetLargeBlock(curX, 0, curY, BlockType.CapturePoint);
+                        for (int i = 1; i <= wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, 0);
+                        }
+                        break;
 
-                        case TileType.CapturePoint:
-                            SetLargeBlock(curX, 0, curY, BlockType.CapturePoint);
-                            for (int i = 1; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, 0);
-                            }
-                            break;
-
-                        default:
-                            for (int i = 0; i < wallHeight; ++i)
-                            {
-                                SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
-                            }
-                            break;
-                    }
+                    default:
+                        for (int i = 0; i <= wallHeight; ++i)
+                        {
+                            SetLargeBlock(curX, i, curY, BlockType.BrickWall2);
+                        }
+                        break;
                 }
             }
         }
