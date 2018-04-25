@@ -388,7 +388,6 @@
     <Compile Include="Assets\Scripts\Environment\CapturePointController.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\BlockType.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\GameType.cs" />
-    <Compile Include="Assets\Scripts\Environment\Enums\PickupType.cs" />
     <Compile Include="Assets\Scripts\Environment\Enums\TileType.cs" />
     <Compile Include="Assets\Scripts\Environment\Genetic Algorithms\MapMutate.cs" />
     <Compile Include="Assets\Scripts\Environment\Helpers\GeneticAlgorithmHelpers.cs" />
@@ -398,7 +397,6 @@
     <Compile Include="Assets\Scripts\Environment\Structs\SyncListTuple.cs" />
     <Compile Include="Assets\Scripts\Extensions\MapSketchExtensions.cs" />
     <Compile Include="Assets\Scripts\Extensions\Vector3Extensions.cs" />
-    <Compile Include="Assets\Scripts\Network\CustomNetworkManager.cs" />
     <Compile Include="Assets\Scripts\Network\GameLobbyHook.cs" />
     <Compile Include="Assets\Scripts\Player\Enums\Team.cs" />
     <Compile Include="Assets\Scripts\Player\GunPositionSync.cs" />
@@ -412,7 +410,6 @@
       <DependentUpon>EncryptionKey.tt</DependentUpon>
     </Compile>
     <Compile Include="Assets\Scripts\Security\SimpleAES.cs" />
-    <Compile Include="Assets\Scripts\Time\Extensions\DateTimeExtensions.cs" />
     <Compile Include="Assets\Scripts\Time\GameTimeManager.cs" />
     <Compile Include="Assets\Scripts\UI\BriefingController.cs" />
     <Compile Include="Assets\Scripts\UI\HUD\LoadingScreenController.cs" />
