@@ -554,10 +554,10 @@ public class MapController : NetworkBehaviour
         var capturePointGene = currentGenes.Last();
         capturePoint.UpdateCapturePoint(
             new Vector3(
-            (capturePointGene.X + capturePointGene.Z / 2.0f) * 2,
+            (capturePointGene.X + Mathf.Abs(capturePointGene.Z) / 2.0f) * 2,
             10,
-            (capturePointGene.Y + capturePointGene.Z / 2.0f) * 2),
-            new Vector3(capturePointGene.Z * 2, 20, capturePointGene.Z * 2));
+            (capturePointGene.Y + Mathf.Abs(capturePointGene.Z) / 2.0f) * 2),
+            new Vector3(Mathf.Abs(capturePointGene.Z) * 2, 20, Mathf.Abs(capturePointGene.Z) * 2));
     }
 
     #region Callbacks

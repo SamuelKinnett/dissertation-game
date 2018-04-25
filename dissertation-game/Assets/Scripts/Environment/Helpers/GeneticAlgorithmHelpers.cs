@@ -53,19 +53,6 @@ namespace Assets.Scripts.Environment.Helpers
             if (!capturePointReachableForTeamOne || !capturePointReachableForTeamTwo)
                 return 0;
 
-            float totalPassableTiles = 0;
-
-            for (int x = 0; x < mapSketchWidth; ++x)
-            {
-                for (int y = 0; y < mapSketchHeight; ++y)
-                {
-                    if (mapSketch[x, y] != TileType.Impassable)
-                    {
-                        ++totalPassableTiles;
-                    }
-                }
-            }
-
             var strategicResourceControlForTeam1 = GetStrategicResourceControlValue(0, referenceTiles, targetTiles, mapReachableForTeamOne, mapReachableForTeamTwo);
             var strategicResourceControlForTeam2 = GetStrategicResourceControlValue(1, referenceTiles, targetTiles, mapReachableForTeamTwo, mapReachableForTeamOne);
 
@@ -120,44 +107,6 @@ namespace Assets.Scripts.Environment.Helpers
         }
 
         /// <summary>
-        /// Implementation of Liapsis, Yannakakis and Togelius' map coverage
-        /// function.
-        /// </summary>
-        /// <param name="i">The index of the reference tile to start at.</param>
-        /// <param name="referenceTiles">The list of reference tiles.</param>
-        /// <param name="mapSketchWidth">The width of the map sketch.</param>
-        /// <param name="mapSketchHeight">The height of the map sketch.</param>
-        /// <param name="mapSketch">The map sketch.</param>
-        /// <param name="totalPassableTiles">The total number of passable tiles for the current map sketch.</param>
-        /// <returns></returns>
-        private static float GetMapCoverage(int i, List<Vector2> referenceTiles, int mapSketchWidth, int mapSketchHeight, TileType[,] mapSketch, float totalPassableTiles)
-        {
-            float totalMapCoverageToReachEachReferenceTile = 0f;
-
-            for (int j = 0; j < referenceTiles.Count; ++j)
-            {
-                if (j != i)
-                {
-                    var mapCoverageToReachTarget = MapSketchHelpers.FloodFillMapSketch(mapSketch, mapSketchWidth, mapSketchHeight, referenceTiles[i], referenceTiles[j]);
-                    var totalTilesToReachTarget = 0;
-                    for (int x = 0; x < mapSketchWidth; ++x)
-                    {
-                        for (int y = 0; y < mapSketchHeight; ++y)
-                        {
-                            if (mapCoverageToReachTarget[x, y] != -1)
-                            {
-                                ++totalTilesToReachTarget;
-                            }
-                        }
-                    }
-                    totalMapCoverageToReachEachReferenceTile += totalTilesToReachTarget / totalPassableTiles;
-                }
-            }
-
-            return (1 / (referenceTiles.Count - 1)) * totalMapCoverageToReachEachReferenceTile;
-        }
-
-        /// <summary>
         /// A slightly modified version of Liapsis, Yannakakis and Togelius'
         /// strategic resource control function, allowing this value to be
         /// calculated on a per-reference tile basis.
@@ -179,44 +128,82 @@ namespace Assets.Scripts.Environment.Helpers
             return totalSafetyForReferenceTile / targetTiles.Count;
         }
 
-        /// <summary>
-        /// A slightly modified version of Liapsis, Yannakakis and Togelius'
-        /// area control function, allowing this value to be calculated on a
-        /// per-reference tile basis.
-        /// </summary>
-        /// <param name="i">The index of the reference tile to calculate the area control value for.</param>
-        /// <param name="referenceTiles">The list of reference tiles.</param>
-        /// <param name="mapSketchWidth">The width of the map sketch.</param>
-        /// <param name="mapSketchHeight">The height of the mpa sketch.</param>
-        /// <param name="mapReachable">The tiles of the map that are reachable for this reference tile.</param>
-        /// <param name="graph">The nav graph for this map sketch.</param>
-        /// <returns></returns>
-        private static float GetAreaControlValue(int i, List<Vector2> referenceTiles, int mapSketchWidth, int mapSketchHeight, int[,] iDistanceMap, int[,] jDistanceMap)
-        {
-            // The safety value required for a tile to be considered safe relative to i
-            const float safetyThreshold = 0.35f;
+        ///// <summary>
+        ///// Implementation of Liapsis, Yannakakis and Togelius' map coverage
+        ///// function.
+        ///// </summary>
+        ///// <param name="i">The index of the reference tile to start at.</param>
+        ///// <param name="referenceTiles">The list of reference tiles.</param>
+        ///// <param name="mapSketchWidth">The width of the map sketch.</param>
+        ///// <param name="mapSketchHeight">The height of the map sketch.</param>
+        ///// <param name="mapSketch">The map sketch.</param>
+        ///// <param name="totalPassableTiles">The total number of passable tiles for the current map sketch.</param>
+        ///// <returns></returns>
+        //private static float GetMapCoverage(int i, List<Vector2> referenceTiles, int mapSketchWidth, int mapSketchHeight, TileType[,] mapSketch, float totalPassableTiles)
+        //{
+        //    float totalMapCoverageToReachEachReferenceTile = 0f;
 
-            float totalPassableTiles = 0;
-            float tilesSafeForI = 0;
+        //    for (int j = 0; j < referenceTiles.Count; ++j)
+        //    {
+        //        if (j != i)
+        //        {
+        //            var mapCoverageToReachTarget = MapSketchHelpers.FloodFillMapSketch(mapSketch, mapSketchWidth, mapSketchHeight, referenceTiles[i], referenceTiles[j]);
+        //            var totalTilesToReachTarget = 0;
+        //            for (int x = 0; x < mapSketchWidth; ++x)
+        //            {
+        //                for (int y = 0; y < mapSketchHeight; ++y)
+        //                {
+        //                    if (mapCoverageToReachTarget[x, y] != -1)
+        //                    {
+        //                        ++totalTilesToReachTarget;
+        //                    }
+        //                }
+        //            }
+        //            totalMapCoverageToReachEachReferenceTile += totalTilesToReachTarget / totalPassableTiles;
+        //        }
+        //    }
 
-            for (int x = 0; x < mapSketchWidth; ++x)
-            {
-                for (int y = 0; y < mapSketchHeight; ++y)
-                {
-                    if (iDistanceMap[x, y] != -1)
-                    {
-                        ++totalPassableTiles;
-                        var tileSafety = GetSafetyValue(new Vector2(x, y), i, referenceTiles, iDistanceMap, jDistanceMap);
+        //    return (1 / (referenceTiles.Count - 1)) * totalMapCoverageToReachEachReferenceTile;
+        //}
 
-                        if (tileSafety > safetyThreshold)
-                        {
-                            ++tilesSafeForI;
-                        }
-                    }
-                }
-            }
+        ///// <summary>
+        ///// A slightly modified version of Liapsis, Yannakakis and Togelius'
+        ///// area control function, allowing this value to be calculated on a
+        ///// per-reference tile basis.
+        ///// </summary>
+        ///// <param name="i">The index of the reference tile to calculate the area control value for.</param>
+        ///// <param name="referenceTiles">The list of reference tiles.</param>
+        ///// <param name="mapSketchWidth">The width of the map sketch.</param>
+        ///// <param name="mapSketchHeight">The height of the mpa sketch.</param>
+        ///// <param name="mapReachable">The tiles of the map that are reachable for this reference tile.</param>
+        ///// <param name="graph">The nav graph for this map sketch.</param>
+        ///// <returns></returns>
+        //private static float GetAreaControlValue(int i, List<Vector2> referenceTiles, int mapSketchWidth, int mapSketchHeight, int[,] iDistanceMap, int[,] jDistanceMap)
+        //{
+        //    // The safety value required for a tile to be considered safe relative to i
+        //    const float safetyThreshold = 0.35f;
 
-            return tilesSafeForI / totalPassableTiles;
-        }
+        //    float totalPassableTiles = 0;
+        //    float tilesSafeForI = 0;
+
+        //    for (int x = 0; x < mapSketchWidth; ++x)
+        //    {
+        //        for (int y = 0; y < mapSketchHeight; ++y)
+        //        {
+        //            if (iDistanceMap[x, y] != -1)
+        //            {
+        //                ++totalPassableTiles;
+        //                var tileSafety = GetSafetyValue(new Vector2(x, y), i, referenceTiles, iDistanceMap, jDistanceMap);
+
+        //                if (tileSafety > safetyThreshold)
+        //                {
+        //                    ++tilesSafeForI;
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    return tilesSafeForI / totalPassableTiles;
+        //}
     }
 }

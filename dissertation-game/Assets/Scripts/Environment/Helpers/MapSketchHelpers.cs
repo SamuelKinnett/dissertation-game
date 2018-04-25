@@ -34,6 +34,7 @@ namespace Assets.Scripts.Environment.Helpers
                     int arenaX = geneTuple.X;
                     int arenaY = geneTuple.Y;
                     int arenaSize = Mathf.Abs(geneTuple.Z);
+
                     for (int curX = arenaX; curX < arenaX + arenaSize; ++curX)
                     {
                         for (int curY = arenaY; curY < arenaY + arenaSize; ++curY)
@@ -55,7 +56,7 @@ namespace Assets.Scripts.Environment.Helpers
                     int corridorY = geneTuple.Y;
                     int corridorLength = geneTuple.Z;
 
-                    if (corridorLength > 1)
+                    if (corridorLength > 0)
                     {
                         // Horizontal corridor
                         for (int curX = corridorX; curX < corridorX + corridorLength; ++curX)
@@ -99,7 +100,7 @@ namespace Assets.Scripts.Environment.Helpers
                     // This gene is the capture point
                     var capturePointX = geneTuple.X;
                     var capturePointY = geneTuple.Y;
-                    var capturePointSize = geneTuple.Z;
+                    var capturePointSize = Mathf.Abs(geneTuple.Z);
 
                     for (int curX = capturePointX; curX < capturePointX + capturePointSize; ++curX)
                     {
@@ -170,7 +171,7 @@ namespace Assets.Scripts.Environment.Helpers
 
             var capturePointX = geneTuple.X;
             var capturePointY = geneTuple.Y;
-            var capturePointSize = geneTuple.Z;
+            var capturePointSize = Mathf.Abs(geneTuple.Z);
 
             for (int curX = capturePointX; curX < capturePointX + capturePointSize; ++curX)
             {
@@ -248,10 +249,6 @@ namespace Assets.Scripts.Environment.Helpers
                             tiles.Enqueue(new Tuple<int, int, int>(x + 1, y, currentDistance + 1));
                             visitedTiles[x + 1, y] = true;
                         }
-                        else if (reachableTiles[x + 1, y] > currentDistance + 1)
-                        {
-                            reachableTiles[x + 1, y] = currentDistance + 1;
-                        }
                     }
                     if (x - 1 > 0)
                     {
@@ -259,10 +256,6 @@ namespace Assets.Scripts.Environment.Helpers
                         {
                             tiles.Enqueue(new Tuple<int, int, int>(x - 1, y, currentDistance + 1));
                             visitedTiles[x - 1, y] = true;
-                        }
-                        else if (reachableTiles[x - 1, y] > currentDistance + 1)
-                        {
-                            reachableTiles[x - 1, y] = currentDistance + 1;
                         }
                     }
                     if (y + 1 < mapSketchHeight - 1)
@@ -272,10 +265,6 @@ namespace Assets.Scripts.Environment.Helpers
                             tiles.Enqueue(new Tuple<int, int, int>(x, y + 1, currentDistance + 1));
                             visitedTiles[x, y + 1] = true;
                         }
-                        else if (reachableTiles[x, y + 1] > currentDistance + 1)
-                        {
-                            reachableTiles[x, y + 1] = currentDistance + 1;
-                        }
                     }
                     if (y - 1 > 0)
                     {
@@ -283,10 +272,6 @@ namespace Assets.Scripts.Environment.Helpers
                         {
                             tiles.Enqueue(new Tuple<int, int, int>(x, y - 1, currentDistance + 1));
                             visitedTiles[x, y - 1] = true;
-                        }
-                        else if (reachableTiles[x, y - 1] > currentDistance + 1)
-                        {
-                            reachableTiles[x, y - 1] = currentDistance + 1;
                         }
                     }
                 }
